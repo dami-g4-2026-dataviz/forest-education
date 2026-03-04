@@ -8,6 +8,7 @@ interface ForestProps {
   activeRegion: Region | null;
   onCountryClick: (country: CountryData) => void;
   chapterId: number;
+  focusedCountryCode?: string | null;
 }
 
 interface TooltipState {
@@ -82,6 +83,7 @@ export default function Forest({
   activeRegion,
   onCountryClick,
   chapterId,
+  focusedCountryCode = null,
 }: ForestProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 1200, height: 700 });
@@ -109,8 +111,15 @@ export default function Forest({
     []
   );
 
-  const isTreeDimmed = (country: CountryData) =>
-    !!(activeRegion && country.region !== activeRegion);
+  const getTreeDimmed = (country: CountryData) => {
+    if (focusedCountryCode) {
+      return country.code !== focusedCountryCode;
+    }
+    if (activeRegion) {
+      return country.region !== activeRegion;
+    }
+    return false;
+  };
 
   const isTreeHighlighted = (country: CountryData) => {
     if (chapterId === 2 && country.learningPoverty > 70) return true;
@@ -118,6 +127,20 @@ export default function Forest({
     if (chapterId === 4 && country.gpiPrimary < 0.85) return true;
     return false;
   };
+
+  // Zoom logic
+  const zoomParams = useMemo(() => {
+    if (focusedCountryCode) {
+      const tree = treePositions.find((t) => t.country.code === focusedCountryCode);
+      return { x: tree?.x ?? svgWidth / 2, scale: 4.5 };
+    }
+    if (activeRegion) {
+      const trees = treePositions.filter((t) => t.country.region === activeRegion);
+      const avgX = trees.reduce((sum, t) => sum + t.x, 0) / trees.length;
+      return { x: avgX, scale: 2.8 };
+    }
+    return { x: svgWidth / 2, scale: 1 };
+  }, [focusedCountryCode, activeRegion, treePositions, svgWidth]);
 
   // Region label positions
   const regionLabels = useMemo(() => {
@@ -137,7 +160,16 @@ export default function Forest({
 
   return (
     <div ref={containerRef} className="relative w-full h-full select-none overflow-hidden">
-      <svg width={svgWidth} height={dims.height} style={{ display: "block" }}>
+      <svg
+        width={svgWidth}
+        height={dims.height}
+        style={{
+          display: "block",
+          transformOrigin: `${zoomParams.x}px ${groundY}px`,
+          transform: `scale(${zoomParams.scale})`,
+          transition: "transform 0.85s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
         <defs>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#040A07" />
@@ -247,22 +279,27 @@ export default function Forest({
         )}
 
         {/* Trees */}
-        {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }) => (
-          <Tree
-            key={country.code}
-            country={country}
-            x={x}
-            y={y}
-            scale={scale}
-            maxTrunkH={maxTrunkH}
-            highlighted={isTreeHighlighted(country)}
-            dimmed={isTreeDimmed(country)}
-            onHover={handleHover}
-            onClick={onCountryClick}
-            animationDelay={delay}
-            highlightMetric={highlightMetric}
-          />
-        ))}
+        {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }) => {
+          const dimmed = getTreeDimmed(country);
+          const dimOpacity = focusedCountryCode ? 0.05 : 0.12;
+          return (
+            <Tree
+              key={country.code}
+              country={country}
+              x={x}
+              y={y}
+              scale={scale}
+              maxTrunkH={maxTrunkH}
+              highlighted={isTreeHighlighted(country)}
+              dimmed={dimmed}
+              dimOpacity={dimOpacity}
+              onHover={handleHover}
+              onClick={onCountryClick}
+              animationDelay={delay}
+              highlightMetric={highlightMetric}
+            />
+          );
+        })}
       </svg>
 
       {/* Tooltip */}

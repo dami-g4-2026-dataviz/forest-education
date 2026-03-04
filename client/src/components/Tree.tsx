@@ -9,6 +9,7 @@ interface TreeProps {
   maxTrunkH?: number; // if provided, trunk height is derived from this (dense/poppyfield mode)
   highlighted?: boolean;
   dimmed?: boolean;
+  dimOpacity?: number;
   onHover?: (country: CountryData | null, x: number, y: number) => void;
   onClick?: (country: CountryData) => void;
   animationDelay?: number;
@@ -60,6 +61,7 @@ export default function Tree({
   maxTrunkH,
   highlighted = false,
   dimmed = false,
+  dimOpacity,
   onHover,
   onClick,
   animationDelay = 0,
@@ -77,25 +79,17 @@ export default function Tree({
   const learningRatio = Math.min(1, country.lays / Math.max(1, country.yearsInSchool));
   const isActive = isHovered || highlighted;
 
-  const dense = !!maxTrunkH;
-
-  // Trunk: height driven by maxTrunkH in dense mode, otherwise traditional formula
-  const trunkH = dense
+  // Trunk: height formula
+  const trunkH = maxTrunkH
     ? (country.yearsInSchool / 16) * maxTrunkH
     : (country.yearsInSchool / 16) * 110 * scale;
-  const trunkW = dense ? Math.max(2, 3.5 * scale) : Math.max(3, 5 * scale);
+  const trunkW = Math.max(3, 5 * scale);
 
-  // Canopy: small dot in dense mode, proportional blob in normal mode
-  const canopyR = dense
-    ? Math.max(3.5, (country.yearsInSchool / 16) * 16 * scale)
-    : (country.yearsInSchool / 16) * 52 * scale;
-
-  // Fewer layers in dense mode to avoid blur clutter
-  const maxLayers = dense ? 2 : 5;
-  const numLayers = Math.max(1, Math.round(1 + learningRatio * (maxLayers - 1)));
+  // Canopy base radius
+  const canopyR = (country.yearsInSchool / 16) * 52 * scale;
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
-  const opacity = dimmed ? 0.15 : 1;
+  const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
   const glowSize = isActive ? 18 : highlighted ? 12 : learningRatio > 0.75 ? 7 : 2;
 
   if (!mounted) return null;
@@ -141,7 +135,7 @@ export default function Tree({
       <polygon
         points={`${-trunkW / 2},0 ${trunkW / 2},0 ${trunkW * 0.28},${-trunkH} ${-trunkW * 0.28},${-trunkH}`}
         fill={color}
-        opacity={0.5 + learningRatio * 0.4}
+        opacity={0.65 + learningRatio * 0.35}
         style={{
           filter: isActive ? `drop-shadow(0 0 ${glowSize}px ${color})` : "none",
           transition: "filter 0.2s ease",
@@ -149,7 +143,7 @@ export default function Tree({
       />
 
       {/* Side branches — sparse on all trees, denser on healthier ones */}
-      {!dense && Array.from({ length: Math.round(1 + learningRatio * 2) }).map((_, i) => {
+      {Array.from({ length: Math.round(1 + learningRatio * 2) }).map((_, i) => {
         const side = i % 2 === 0 ? 1 : -1;
         const heightFrac = 0.45 + i * 0.15;
         const branchY = -trunkH * heightFrac;
@@ -171,7 +165,7 @@ export default function Tree({
       })}
 
       {/* Bare spindly branches — crisis trees */}
-      {!dense && learningRatio < 0.4 && (
+      {learningRatio < 0.4 && (
         <>
           {[
             [-1.1, -0.55],
@@ -194,88 +188,56 @@ export default function Tree({
         </>
       )}
 
-      {/* Canopy layers — stacked organic blobs */}
-      {Array.from({ length: numLayers }).map((_, i) => {
-        const frac = numLayers > 1 ? i / (numLayers - 1) : 0;
-        // Wider at the middle, narrowing toward top (natural deciduous silhouette)
-        const widthPeak = 0.4;
-        const widthShape = frac < widthPeak
-          ? frac / widthPeak
-          : 1 - (frac - widthPeak) / (1 - widthPeak);
-        const rx = canopyR * (0.55 + widthShape * 0.45);
-        const ry = rx * (0.58 + learningRatio * 0.1);
-        const cy = -trunkH - canopyR * 0.2 - frac * canopyR * 0.95;
-        const jx = dense ? 0 : (sr(seed + i * 13) - 0.5) * 6 * scale;
-        const layerOpacity = (0.2 + learningRatio * 0.32) * (1 - frac * 0.12);
-        const isTopLayer = i === numLayers - 1;
-
-        return (
-          <ellipse
-            key={i}
-            cx={jx}
-            cy={cy}
-            rx={rx}
-            ry={ry}
-            fill={color}
-            opacity={layerOpacity}
-            style={
-              isTopLayer && learningRatio > 0.65
-                ? { filter: `drop-shadow(0 0 ${glowSize * 0.55}px ${color})` }
-                : undefined
-            }
-          />
-        );
-      })}
-
-      {/* Satellite foliage clusters for healthy trees — gives organic crown shape */}
-      {!dense && learningRatio > 0.5 && Array.from({ length: Math.round(learningRatio * 3) }).map((_, i) => {
-        const angle = (sr(seed + i * 31) * Math.PI * 2);
-        const dist = canopyR * (0.55 + sr(seed + i * 17) * 0.3);
-        const clusterR = canopyR * (0.22 + sr(seed + i * 23) * 0.18);
-        const cx = Math.cos(angle) * dist * 0.7;
-        const cy = -trunkH - canopyR * 0.6 + Math.sin(angle) * dist * 0.45;
-        return (
-          <ellipse
-            key={`cluster-${i}`}
-            cx={cx}
-            cy={cy}
-            rx={clusterR}
-            ry={clusterR * 0.72}
-            fill={color}
-            opacity={0.12 + learningRatio * 0.14}
-          />
-        );
-      })}
-
-      {/* Hover ring on ground */}
-      {isActive && (
-        <ellipse
+      {/* Canopy: Organic Cloud Clusters */}
+      <g
+        style={{
+          filter: `drop-shadow(0 0 ${isActive ? 8 : 4}px ${color}${isActive ? "80" : "40"})`,
+          transition: "filter 0.3s ease",
+        }}
+      >
+        {/* Main central cluster */}
+        <circle
           cx={0}
-          cy={0}
-          rx={Math.max(canopyR * 0.4, 10)}
-          ry={4 * scale}
-          fill="none"
-          stroke={color}
-          strokeWidth={1}
-          opacity={0.45}
-        />
-      )}
-
-      {/* Country code label — shown on hover in dense mode, always when scale large enough */}
-      {(isActive || (!dense && scale > 0.7)) && (
-        <text
-          x={0}
-          y={dense ? -trunkH - canopyR * 1.6 : 11}
-          textAnchor="middle"
+          cy={-trunkH - canopyR * 0.2}
+          r={canopyR * 0.75}
           fill={color}
-          opacity={isActive ? 0.95 : 0.3}
-          fontSize={dense ? Math.max(7, 9 * scale) : Math.max(6, 8 * scale)}
-          fontFamily="Space Mono, monospace"
-          style={{ transition: "opacity 0.2s", userSelect: "none", pointerEvents: "none" }}
-        >
-          {country.code}
-        </text>
-      )}
+          opacity={0.2 + learningRatio * 0.4}
+        />
+
+        {/* Satellite clusters */}
+        {Array.from({ length: 5 + Math.round(sr(seed) * 3) }).map((_, i) => {
+          const angle = sr(seed + i * 13) * Math.PI * 2;
+          const dist = canopyR * (0.4 + sr(seed + i * 19) * 0.4);
+          const r = canopyR * (0.35 + sr(seed + i * 23) * 0.25);
+          const cx = Math.cos(angle) * dist;
+          const cy = -trunkH - canopyR * 0.3 + Math.sin(angle) * dist * 0.7;
+
+          return (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill={color}
+              opacity={(0.15 + learningRatio * 0.3) * (1 - i * 0.05)}
+            />
+          );
+        })}
+      </g>
+
+      {/* Country code label — always shown at low opacity, bright on hover */}
+      <text
+        x={0}
+        y={11}
+        textAnchor="middle"
+        fill={color}
+        opacity={isActive ? 0.95 : 0.25}
+        fontSize={Math.max(6, 8 * scale)}
+        fontFamily="Space Mono, monospace"
+        style={{ transition: "opacity 0.2s", userSelect: "none", pointerEvents: "none" }}
+      >
+        {country.code}
+      </text>
     </g>
   );
 }

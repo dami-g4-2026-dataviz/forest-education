@@ -1,19 +1,48 @@
 import { useState, useCallback, useEffect } from "react";
-import { CountryData, Region, REGION_COLORS } from "@/lib/educationData";
+import { countries, CountryData, Region, REGION_COLORS } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
-import { ChevronDown, TreePine } from "lucide-react";
+import { ChevronDown, TreePine, ArrowRight } from "lucide-react";
+
+const NARRATIVE_CHAPTERS = [
+  {
+    code: "NER",
+    headline: "5 years in school. 2 years of learning.",
+    subtext: "92% of 10-year-olds in Niger cannot read a simple sentence.",
+  },
+  {
+    code: "IND",
+    headline: "10 years enrolled. Half of it lost.",
+    subtext: "High enrollment hides a learning crisis affecting 250 million children.",
+  },
+  {
+    code: "SGP",
+    headline: "13 years in school. 12.8 years of learning.",
+    subtext: "The gap between Niger and Singapore is 10 years of real learning — a full childhood.",
+  },
+];
 
 export default function Home() {
   const [introStep, setIntroStep] = useState<0 | 1 | 2>(0); // 0=title, 1=context, 2=main
+  const [narrativeChapter, setNarrativeChapter] = useState(0);
   const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
 
-  const showIntro = introStep < 2;
+  const isNarrative = introStep === 2 && narrativeChapter < NARRATIVE_CHAPTERS.length;
+  const isFreeExplore = introStep === 2 && narrativeChapter >= NARRATIVE_CHAPTERS.length;
 
   const advanceIntro = useCallback(() => {
-    setIntroStep((s) => (s < 2 ? ((s + 1) as 0 | 1 | 2) : s));
-  }, []);
+    if (introStep < 2) {
+      setIntroStep((s) => (s + 1) as 0 | 1 | 2);
+    } else if (narrativeChapter < NARRATIVE_CHAPTERS.length) {
+      setNarrativeChapter((c) => c + 1);
+    }
+  }, [introStep, narrativeChapter]);
+
+  const skipToExplore = () => {
+    setIntroStep(2);
+    setNarrativeChapter(NARRATIVE_CHAPTERS.length);
+  };
 
   // Keyboard & scroll handlers
   useEffect(() => {
@@ -22,7 +51,9 @@ export default function Home() {
         advanceIntro();
       } else if (introStep === 1 && (e.key === "Enter" || e.key === " ")) {
         advanceIntro();
-      } else if (introStep === 2 && e.key === "Escape") {
+      } else if (isNarrative && (e.key === "Enter" || e.key === "ArrowRight")) {
+        advanceIntro();
+      } else if (isFreeExplore && e.key === "Escape") {
         setSelectedCountry(null);
         setActiveRegion(null);
       }
@@ -36,7 +67,7 @@ export default function Home() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [introStep, advanceIntro]);
+  }, [introStep, advanceIntro, isNarrative, isFreeExplore]);
 
   const handleCountryClick = useCallback((country: CountryData) => {
     setSelectedCountry(country);
@@ -45,6 +76,8 @@ export default function Home() {
   const handleRegionClick = useCallback((region: Region) => {
     setActiveRegion((r) => (r === region ? null : region));
   }, []);
+
+  const currentChapter = isNarrative ? NARRATIVE_CHAPTERS[narrativeChapter] : null;
 
   return (
     <div
@@ -56,8 +89,9 @@ export default function Home() {
         <Forest
           highlightMetric={null}
           activeRegion={activeRegion}
-          onCountryClick={showIntro ? () => {} : handleCountryClick}
-          chapterId={0}
+          onCountryClick={isFreeExplore ? handleCountryClick : () => {}}
+          chapterId={narrativeChapter}
+          focusedCountryCode={currentChapter?.code}
         />
       </div>
 
@@ -176,8 +210,67 @@ export default function Home() {
         </div>
       )}
 
-      {/* ─── Main UI ───────────────────────────────────────────────────────── */}
-      {introStep === 2 && (
+      {/* ─── Narrative Chapters ───────────────────────────────────────────── */}
+      {isNarrative && currentChapter && (
+        <div className="absolute inset-0 z-40 flex items-center pointer-events-none">
+          <div 
+            className="ml-[10%] max-w-md p-10 rounded-3xl pointer-events-auto animate-in fade-in slide-in-from-left-8 duration-700"
+            style={{ 
+              background: "rgba(8, 16, 12, 0.85)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              backdropFilter: "blur(16px)"
+            }}
+          >
+            <div className="flex gap-1.5 mb-6">
+              {NARRATIVE_CHAPTERS.map((_, i) => (
+                <div 
+                  key={i} 
+                  className="h-1 rounded-full transition-all duration-500"
+                  style={{ 
+                    width: i === narrativeChapter ? 24 : 8,
+                    background: i === narrativeChapter ? "var(--tree-healthy)" : "rgba(255,255,255,0.15)"
+                  }}
+                />
+              ))}
+            </div>
+            
+            <h2 
+              className="text-3xl font-bold mb-4 leading-tight text-white"
+              style={{ fontFamily: "Playfair Display, serif" }}
+            >
+              {currentChapter.headline}
+            </h2>
+            <p className="text-lg text-white/60 mb-8 font-light leading-relaxed">
+              {currentChapter.subtext}
+            </p>
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={advanceIntro}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:gap-3"
+                style={{
+                  background: "var(--tree-healthy)",
+                  color: "var(--forest-deep)",
+                }}
+              >
+                {narrativeChapter === NARRATIVE_CHAPTERS.length - 1 ? "Start Exploring" : "Next"} 
+                <ArrowRight size={16} />
+              </button>
+
+              <button 
+                onClick={skipToExplore}
+                className="text-xs opacity-30 hover:opacity-100 transition-opacity"
+                style={{ color: "white", fontFamily: "Space Mono, monospace" }}
+              >
+                Skip to explore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Main Explore UI ────────────────────────────────────────────────── */}
+      {isFreeExplore && (
         <>
           {/* Header bar */}
           <div
@@ -239,14 +332,17 @@ export default function Home() {
 
             {/* About button */}
             <button
-              onClick={() => setIntroStep(1)}
+              onClick={() => {
+                setIntroStep(1);
+                setNarrativeChapter(0);
+              }}
               className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
               style={{
                 color: "rgba(255,255,255,0.35)",
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              About
+              Restart
             </button>
           </div>
 
@@ -262,3 +358,4 @@ export default function Home() {
     </div>
   );
 }
+

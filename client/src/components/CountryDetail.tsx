@@ -1,5 +1,6 @@
 import { CountryData, REGION_COLORS } from "@/lib/educationData";
 import { X } from "lucide-react";
+import Tree from "./Tree";
 
 interface CountryDetailProps {
   country: CountryData;
@@ -18,25 +19,12 @@ const METRIC_SOURCES: Record<string, { label: string; url: string }> = {
 function StatRow({ label, value, unit, color, sourceKey }: { label: string; value: number | string; unit?: string; color?: string; sourceKey?: string }) {
   const source = sourceKey ? METRIC_SOURCES[sourceKey] : undefined;
   return (
-    <div className="flex justify-between items-baseline py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+    <div className="flex justify-between items-baseline py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{label}</span>
-        {source && (
-          <a
-            href={source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs transition-opacity"
-            style={{ color: "rgba(255,255,255,0.2)", fontFamily: "Space Mono, monospace", textDecoration: "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.2)")}
-          >
-            ↗ {source.label}
-          </a>
-        )}
+        <span className="text-[11px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</span>
       </div>
       <span
-        className="font-bold text-base"
+        className="font-bold text-sm"
         style={{
           color: color || "var(--text-primary)",
           fontFamily: "Space Mono, monospace",
@@ -67,140 +55,110 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-40 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
-    <div
-      className="relative flex flex-col rounded-2xl"
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        width: 380,
-        maxHeight: "85vh",
-        background: "rgba(10, 15, 13, 0.97)",
-        border: `1px solid ${color}30`,
-        backdropFilter: "blur(16px)",
-        overflowY: "auto",
-      }}
-    >
-      {/* Header */}
       <div
-        className="flex items-start justify-between p-6"
-        style={{ borderBottom: `1px solid ${color}20` }}
+        className="relative flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 720,
+          maxHeight: "90vh",
+          background: "rgba(10, 15, 13, 0.98)",
+          border: `1px solid ${color}40`,
+        }}
       >
-        <div>
-          <div
-            className="text-2xl font-bold leading-tight"
-            style={{ color: "var(--text-primary)", fontFamily: "Playfair Display, serif" }}
-          >
-            {country.name}
-          </div>
-          <div className="text-xs mt-1" style={{ color, fontFamily: "Space Mono, monospace" }}>
-            {country.code} · {country.region}
-          </div>
-        </div>
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="p-1 rounded-full transition-colors"
-          style={{ color: "var(--text-secondary)" }}
+          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 transition-colors"
+          style={{ color: "rgba(255,255,255,0.5)" }}
         >
-          <X size={18} />
+          <X size={20} />
         </button>
-      </div>
 
-      {/* Tree visual summary */}
-      <div className="p-6" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-        <div className="flex items-end gap-4 justify-center mb-4">
-          {/* Trunk = years in school */}
-          <div className="flex flex-col items-center gap-1">
-            <div
-              className="w-6 rounded-t-sm"
-              style={{
-                height: `${(country.yearsInSchool / 16) * 100}px`,
-                background: "rgba(255,255,255,0.15)",
-              }}
+        {/* Left Column: Tree Visual */}
+        <div 
+          className="w-full md:w-[42%] flex flex-col items-center justify-center p-8 bg-gradient-to-b from-transparent to-black/20"
+          style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="relative">
+            <svg width={240} height={280} className="overflow-visible">
+              <Tree 
+                country={country}
+                x={120}
+                y={260}
+                scale={3.8}
+                maxTrunkH={160}
+              />
+            </svg>
+            <div 
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              style={{ filter: "blur(2px)" }}
             />
-            <span className="text-xs" style={{ color: "var(--text-secondary)", fontFamily: "Space Mono, monospace" }}>
-              {country.yearsInSchool}y
-            </span>
-            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>enrolled</span>
           </div>
-
-          {/* Canopy = LAYS */}
-          <div className="flex flex-col items-center gap-1">
-            <div
-              className="w-6 rounded-t-sm"
+          <div className="mt-8 text-center">
+            <span
+              className="text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold"
               style={{
-                height: `${(country.lays / 16) * 100}px`,
-                background: color,
-                boxShadow: `0 0 12px ${color}40`,
+                background: `${efficiencyColor}15`,
+                color: efficiencyColor,
+                border: `1px solid ${efficiencyColor}30`,
+                fontFamily: "Space Mono, monospace",
               }}
-            />
-            <span className="text-xs font-bold" style={{ color, fontFamily: "Space Mono, monospace" }}>
-              {country.lays}y
+            >
+              {efficiencyLabel}
             </span>
-            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>learning</span>
           </div>
         </div>
 
-        <div className="text-center">
-          <span
-            className="text-xs px-3 py-1 rounded-full"
-            style={{
-              background: `${efficiencyColor}20`,
-              color: efficiencyColor,
-              fontFamily: "Space Mono, monospace",
-            }}
-          >
-            {efficiencyLabel} · {Math.round(learningRatio * 100)}% efficiency
-          </span>
+        {/* Right Column: Editorial Data */}
+        <div className="flex-1 flex flex-col p-10 overflow-y-auto">
+          <header className="mb-8">
+            <div className="text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color, fontFamily: "Space Mono, monospace" }}>
+              {country.region}
+            </div>
+            <h2 
+              className="text-4xl font-bold leading-tight"
+              style={{ color: "var(--text-primary)", fontFamily: "Playfair Display, serif" }}
+            >
+              {country.name}
+            </h2>
+          </header>
+
+          <div className="mb-10">
+            <div className="flex items-baseline gap-2 mb-1">
+              <span className="text-5xl font-black" style={{ color: "var(--text-primary)", fontFamily: "Space Mono, monospace" }}>
+                {country.lays}
+              </span>
+              <span className="text-xl opacity-40 font-light">years</span>
+            </div>
+            <p className="text-lg leading-snug font-light text-white/70">
+              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning.
+            </p>
+            {lostYears > 0.5 && (
+              <p className="mt-4 text-sm text-white/40 italic">
+                “{lostYears.toFixed(1)} years of schooling are lost to low education quality.”
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1 mt-auto">
+            <StatRow label="Learning Poverty" value={country.learningPoverty} unit="%" color={country.learningPoverty > 60 ? "#EF4444" : country.learningPoverty > 30 ? "#F97316" : "#4ADE80"} />
+            <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" />
+            <StatRow label="Gender Parity Index" value={country.gpiPrimary} color={country.gpiPrimary < 0.9 ? "#EF4444" : country.gpiPrimary > 1.1 ? "#06B6D4" : "#4ADE80"} />
+            <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" />
+          </div>
+
+          <footer className="mt-8 pt-6 flex justify-between items-center opacity-20 text-[9px] uppercase tracking-tighter" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <span>Source: World Bank HCI 2024</span>
+            <span>Ref: SDG 4.1.1</span>
+          </footer>
         </div>
-
-        {lostYears > 1 && (
-          <p className="text-xs text-center mt-3" style={{ color: "var(--text-secondary)" }}>
-            <span style={{ color: "#EF4444", fontFamily: "Space Mono, monospace" }}>
-              {lostYears.toFixed(1)} years
-            </span>{" "}
-            of schooling lost to low quality
-          </p>
-        )}
       </div>
-
-      {/* Stats */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <StatRow label="Years in School" value={country.yearsInSchool} unit=" yrs" sourceKey="yearsInSchool" />
-        <StatRow
-          label="Learning-Adj. Years (LAYS)"
-          value={country.lays}
-          unit=" yrs"
-          color={color}
-          sourceKey="lays"
-        />
-        <StatRow
-          label="Learning Poverty"
-          value={country.learningPoverty}
-          unit="%"
-          color={country.learningPoverty > 60 ? "#EF4444" : country.learningPoverty > 30 ? "#F97316" : "#4ADE80"}
-          sourceKey="learningPoverty"
-        />
-        <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" sourceKey="enrollmentRate" />
-        <StatRow
-          label="Gender Parity Index"
-          value={country.gpiPrimary}
-          color={country.gpiPrimary < 0.9 ? "#EF4444" : country.gpiPrimary > 1.1 ? "#06B6D4" : "#4ADE80"}
-          sourceKey="gpiPrimary"
-        />
-        <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" sourceKey="spendingPctGDP" />
-      </div>
-
-      {/* Footer */}
-      <div
-        className="p-4 text-xs"
-        style={{ color: "var(--text-secondary)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
-      >
-        <span>World Bank HCI · UNESCO UIS · WB Learning Poverty</span>
-      </div>
-    </div>
     </div>
   );
 }
+
