@@ -90,8 +90,9 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
                 country={country}
                 x={120}
                 y={260}
-                scale={3.8}
+                scale={2.2}
                 maxTrunkH={160}
+                showLabel={true}
               />
             </svg>
             <div 

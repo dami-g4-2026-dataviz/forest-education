@@ -10,6 +10,7 @@ interface TreeProps {
   highlighted?: boolean;
   dimmed?: boolean;
   dimOpacity?: number;
+  showLabel?: boolean;
   onHover?: (country: CountryData | null, x: number, y: number) => void;
   onClick?: (country: CountryData) => void;
   animationDelay?: number;
@@ -62,6 +63,7 @@ export default function Tree({
   highlighted = false,
   dimmed = false,
   dimOpacity,
+  showLabel = false,
   onHover,
   onClick,
   animationDelay = 0,
@@ -204,11 +206,11 @@ export default function Tree({
           opacity={0.2 + learningRatio * 0.4}
         />
 
-        {/* Satellite clusters */}
+        {/* Satellite clusters - restricted to be more contained */}
         {Array.from({ length: 5 + Math.round(sr(seed) * 3) }).map((_, i) => {
           const angle = sr(seed + i * 13) * Math.PI * 2;
-          const dist = canopyR * (0.4 + sr(seed + i * 19) * 0.4);
-          const r = canopyR * (0.35 + sr(seed + i * 23) * 0.25);
+          const dist = canopyR * (0.3 + sr(seed + i * 19) * 0.3); // Reduced dist from 0.4+0.4 to 0.3+0.3
+          const r = canopyR * (0.3 + sr(seed + i * 23) * 0.2);   // Reduced radius from 0.35+0.25 to 0.3+0.2
           const cx = Math.cos(angle) * dist;
           const cy = -trunkH - canopyR * 0.3 + Math.sin(angle) * dist * 0.7;
 
@@ -225,19 +227,23 @@ export default function Tree({
         })}
       </g>
 
-      {/* Country code label — always shown at low opacity, bright on hover */}
-      <text
-        x={0}
-        y={11}
-        textAnchor="middle"
-        fill={color}
-        opacity={isActive ? 0.95 : 0.25}
-        fontSize={Math.max(6, 8 * scale)}
-        fontFamily="Space Mono, monospace"
-        style={{ transition: "opacity 0.2s", userSelect: "none", pointerEvents: "none" }}
-      >
-        {country.code}
-      </text>
+      {/* Country code label — shown on hover or when showLabel is true */}
+      {(isActive || showLabel) && (
+        <text
+          x={0}
+          y={14} // Moved down from 11 to avoid ground elements
+          textAnchor="middle"
+          fill={color}
+          opacity={isActive ? 0.95 : 0.6} // Increased from 0.25 to 0.6 for better visibility
+          fontSize={Math.max(6, 8 * scale)}
+          fontWeight="bold"
+          fontFamily="Space Mono, monospace"
+          style={{ transition: "opacity 0.2s", userSelect: "none", pointerEvents: "none" }}
+        >
+          {country.code}
+        </text>
+      )}
     </g>
   );
 }
+
