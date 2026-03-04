@@ -87,12 +87,15 @@ export default function Tree({
     : (country.yearsInSchool / 16) * 110 * scale;
   const trunkW = Math.max(3, 5 * scale);
 
-  // Canopy base radius
-  const canopyR = (country.yearsInSchool / 16) * 52 * scale;
+  // Canopy base radius driven by LAYS (Actual Learning)
+  const canopyR = (country.lays / 16) * 60 * scale;
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
   const glowSize = isActive ? 18 : highlighted ? 12 : learningRatio > 0.75 ? 7 : 2;
+
+  // Number of foliage clusters driven by learning ratio
+  const numClusters = Math.max(1, Math.round((2 + sr(seed) * 2) + learningRatio * 6));
 
   if (!mounted) return null;
 
@@ -207,7 +210,7 @@ export default function Tree({
         />
 
         {/* Satellite clusters - restricted to be more contained */}
-        {Array.from({ length: 5 + Math.round(sr(seed) * 3) }).map((_, i) => {
+        {Array.from({ length: numClusters }).map((_, i) => {
           const angle = sr(seed + i * 13) * Math.PI * 2;
           const dist = canopyR * (0.3 + sr(seed + i * 19) * 0.3); // Reduced dist from 0.4+0.4 to 0.3+0.3
           const r = canopyR * (0.3 + sr(seed + i * 23) * 0.2);   // Reduced radius from 0.35+0.25 to 0.3+0.2
