@@ -22,6 +22,16 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
     <div className="flex justify-between items-baseline py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="flex flex-col gap-0.5">
         <span className="text-[11px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</span>
+        {source && (
+          <a 
+            href={source.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[9px] text-white/20 hover:text-white/40 transition-colors"
+          >
+            Source: {source.label}
+          </a>
+        )}
       </div>
       <span
         className="font-bold text-sm"
@@ -147,14 +157,16 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
           </div>
 
           <div className="space-y-1 mt-auto">
-            <StatRow label="Learning Poverty" value={country.learningPoverty} unit="%" color={country.learningPoverty > 60 ? "#EF4444" : country.learningPoverty > 30 ? "#F97316" : "#4ADE80"} />
-            <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" />
-            <StatRow label="Gender Parity Index" value={country.gpiPrimary} color={country.gpiPrimary < 0.9 ? "#EF4444" : country.gpiPrimary > 1.1 ? "#06B6D4" : "#4ADE80"} />
-            <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" />
+            <StatRow label="Learning Poverty" value={country.learningPoverty} unit="%" color={country.learningPoverty > 60 ? "#EF4444" : country.learningPoverty > 30 ? "#F97316" : "#4ADE80"} sourceKey="learningPoverty" />
+            <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" sourceKey="enrollmentRate" />
+            <StatRow label="Gender Parity Index" value={country.gpiPrimary} color={country.gpiPrimary < 0.9 ? "#EF4444" : country.gpiPrimary > 1.1 ? "#06B6D4" : "#4ADE80"} sourceKey="gpiPrimary" />
+            <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" sourceKey="spendingPctGDP" />
           </div>
 
-          <footer className="mt-8 pt-6 flex justify-between items-center opacity-20 text-[9px] uppercase tracking-tighter" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <span>Source: World Bank HCI 2024</span>
+          <footer className="mt-8 pt-6 flex justify-between items-center opacity-40 text-[9px] uppercase tracking-tighter" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <a href="https://www.worldbank.org/en/publication/human-capital" target="_blank" rel="noopener noreferrer" className="hover:text-white/80 transition-colors">
+              Source: World Bank HCI 2024
+            </a>
             <span>Ref: SDG 4.1.1</span>
           </footer>
         </div>
