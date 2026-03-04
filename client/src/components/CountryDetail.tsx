@@ -42,12 +42,20 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
 
   return (
     <div
-      className="fixed right-0 top-0 h-full z-40 flex flex-col"
+      className="fixed inset-0 z-40 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+    <div
+      className="relative flex flex-col rounded-2xl"
+      onClick={(e) => e.stopPropagation()}
       style={{
-        width: 320,
+        width: 380,
+        maxHeight: "85vh",
         background: "rgba(10, 15, 13, 0.97)",
-        borderLeft: `1px solid ${color}30`,
+        border: `1px solid ${color}30`,
         backdropFilter: "blur(16px)",
+        overflowY: "auto",
       }}
     >
       {/* Header */}
@@ -161,6 +169,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
       <div className="p-4 text-xs" style={{ color: "var(--text-secondary)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         Sources: World Bank Human Capital Index, UNESCO UIS, World Bank Learning Poverty Data
       </div>
+    </div>
     </div>
   );
 }
