@@ -6,6 +6,7 @@ interface TreeProps {
   x: number;
   y: number;
   scale?: number;
+  maxTrunkH?: number; // if provided, trunk height is derived from this (dense/poppyfield mode)
   highlighted?: boolean;
   dimmed?: boolean;
   onHover?: (country: CountryData | null, x: number, y: number) => void;
@@ -56,6 +57,7 @@ export default function Tree({
   x,
   y,
   scale = 1,
+  maxTrunkH,
   highlighted = false,
   dimmed = false,
   onHover,
@@ -75,15 +77,22 @@ export default function Tree({
   const learningRatio = Math.min(1, country.lays / Math.max(1, country.yearsInSchool));
   const isActive = isHovered || highlighted;
 
-  // Trunk: height proportional to years in school
-  const trunkH = (country.yearsInSchool / 16) * 110 * scale;
-  const trunkW = Math.max(3, 5 * scale);
+  const dense = !!maxTrunkH;
 
-  // Canopy: radius proportional to years in school, density to learning ratio
-  const canopyR = (country.yearsInSchool / 16) * 52 * scale;
+  // Trunk: height driven by maxTrunkH in dense mode, otherwise traditional formula
+  const trunkH = dense
+    ? (country.yearsInSchool / 16) * maxTrunkH
+    : (country.yearsInSchool / 16) * 110 * scale;
+  const trunkW = dense ? Math.max(2, 3.5 * scale) : Math.max(3, 5 * scale);
 
-  // Number of canopy layers (1 = bare, 5 = lush)
-  const numLayers = Math.max(1, Math.round(1 + learningRatio * 4));
+  // Canopy: small dot in dense mode, proportional blob in normal mode
+  const canopyR = dense
+    ? Math.max(3.5, (country.yearsInSchool / 16) * 16 * scale)
+    : (country.yearsInSchool / 16) * 52 * scale;
+
+  // Fewer layers in dense mode to avoid blur clutter
+  const maxLayers = dense ? 2 : 5;
+  const numLayers = Math.max(1, Math.round(1 + learningRatio * (maxLayers - 1)));
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? 0.15 : 1;
@@ -133,8 +142,8 @@ export default function Tree({
         }}
       />
 
-      {/* Bare branches for low-learning trees */}
-      {learningRatio < 0.4 && (
+      {/* Bare branches — only in normal (non-dense) mode */}
+      {!dense && learningRatio < 0.4 && (
         <>
           {[
             [-1.1, -0.55],
@@ -157,13 +166,13 @@ export default function Tree({
         </>
       )}
 
-      {/* Canopy layers — stacked, each slightly smaller and higher */}
+      {/* Canopy layers */}
       {Array.from({ length: numLayers }).map((_, i) => {
         const frac = numLayers > 1 ? i / (numLayers - 1) : 0;
         const rx = canopyR * (1 - frac * 0.42);
         const ry = rx * 0.62;
         const cy = -trunkH - canopyR * 0.3 - frac * canopyR * 0.8;
-        const jx = (sr(seed + i * 13) - 0.5) * 5 * scale;
+        const jx = dense ? 0 : (sr(seed + i * 13) - 0.5) * 5 * scale;
         const layerOpacity =
           (0.22 + learningRatio * 0.32) * (1 - frac * 0.15);
         const isTopLayer = i === numLayers - 1;
@@ -202,17 +211,17 @@ export default function Tree({
         />
       )}
 
-      {/* Country code label */}
-      {scale > 0.7 && (
+      {/* Country code label — shown on hover in dense mode, always when scale large enough */}
+      {(isActive || (!dense && scale > 0.7)) && (
         <text
           x={0}
-          y={11}
+          y={dense ? -trunkH - canopyR * 1.6 : 11}
           textAnchor="middle"
           fill={color}
-          opacity={isActive ? 0.9 : 0.3}
-          fontSize={Math.max(6, 8 * scale)}
+          opacity={isActive ? 0.95 : 0.3}
+          fontSize={dense ? Math.max(7, 9 * scale) : Math.max(6, 8 * scale)}
           fontFamily="Space Mono, monospace"
-          style={{ transition: "opacity 0.2s", userSelect: "none" }}
+          style={{ transition: "opacity 0.2s", userSelect: "none", pointerEvents: "none" }}
         >
           {country.code}
         </text>

@@ -27,7 +27,7 @@ const REGION_ORDER: Region[] = [
 ];
 
 function layoutTrees(containerWidth: number, height: number) {
-  // Ground is at 85% of height — trees grow upward into the sky
+  // Ground at 85% of height — trees grow upward into the sky
   const groundY = Math.round(height * 0.85);
   const marginL = 32;
   const marginR = 32;
@@ -40,24 +40,19 @@ function layoutTrees(containerWidth: number, height: number) {
   });
 
   const n = sorted.length;
-
-  // Height-driven scale: tallest tree fills ~70% of the sky above ground
-  const scaleByHeight = (groundY * 0.70) / ((14 / 16) * 110);
-
-  // Each tree needs at least 60px so canopies are readable and labels visible
-  // canopyR = (avgYrs/16)*52*scale ≈ 35.75*scale; diameter ≈ 71.5*scale
-  // At scale ≈ 0.8 and spacing 60px, canopies just touch — a natural "forest" look
-  const minSpacingPx = 60;
-  const minSvgWidth = n * minSpacingPx + marginL + marginR;
-  const svgWidth = Math.max(containerWidth, minSvgWidth);
-
+  const svgWidth = containerWidth;
   const usableWidth = svgWidth - marginL - marginR;
   const spacing = usableWidth / n;
 
-  // Width-driven scale: canopy diameter ≤ spacing
-  // avgYrs ≈ 11 → canopyR ≈ 35.75*scale, we want 2*canopyR ≈ spacing*0.9
-  const scaleByWidth = (spacing * 0.9) / (35.75 * 2);
-  const scale = Math.max(0.6, Math.min(2.5, Math.min(scaleByHeight, scaleByWidth)));
+  // Trunk height fills up to 72% of the sky — this is the primary data encoding
+  // (16 = theoretical max years of schooling)
+  const maxTrunkH = groundY * 0.72;
+
+  // Scale drives canopy radius only — we want canopies to just touch neighbours
+  // canopyR ≈ (avgYrs/16) * 16 * scale; avg ≈ 11 → canopyR ≈ 11*scale
+  // want diameter (2 * canopyR) ≈ spacing, so: scale = spacing / (11 * 2)
+  const scaleByWidth = spacing / (11 * 2);
+  const scale = Math.max(0.3, Math.min(2.5, scaleByWidth));
 
   return {
     positions: sorted.map((country, i) => ({
@@ -65,14 +60,16 @@ function layoutTrees(containerWidth: number, height: number) {
       x: marginL + i * spacing + spacing / 2,
       y: groundY,
       scale,
-      delay: i * 22 + 150,
+      maxTrunkH,
+      delay: i * 18 + 80,
     })),
     svgWidth,
     groundY,
+    maxTrunkH,
   };
 }
 
-// Deterministic star positions (enough for wide canvases)
+// Deterministic star positions
 const STARS = Array.from({ length: 250 }, (_, i) => ({
   x: (i * 137.508) % 100,
   y: (i * 97.31) % 70,
@@ -139,8 +136,8 @@ export default function Forest({
   }, [treePositions]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full select-none overflow-x-auto">
-      <svg width={svgWidth} height={dims.height} style={{ display: "block", minWidth: svgWidth }}>
+    <div ref={containerRef} className="relative w-full h-full select-none overflow-hidden">
+      <svg width={svgWidth} height={dims.height} style={{ display: "block" }}>
         <defs>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#040A07" />
@@ -230,7 +227,7 @@ export default function Forest({
               <text
                 key={rl.region}
                 x={rl.x}
-                y={groundY + 22}
+                y={groundY + 20}
                 textAnchor="middle"
                 fill={rl.color}
                 opacity={
@@ -240,7 +237,7 @@ export default function Forest({
                       : 0.12
                     : 0.35
                 }
-                fontSize={9}
+                fontSize={8}
                 fontFamily="Space Mono, monospace"
                 style={{ transition: "opacity 0.35s ease" }}
               >
@@ -250,13 +247,14 @@ export default function Forest({
         )}
 
         {/* Trees */}
-        {treePositions.map(({ country, x, y, scale, delay }) => (
+        {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }) => (
           <Tree
             key={country.code}
             country={country}
             x={x}
             y={y}
             scale={scale}
+            maxTrunkH={maxTrunkH}
             highlighted={isTreeHighlighted(country)}
             dimmed={isTreeDimmed(country)}
             onHover={handleHover}
