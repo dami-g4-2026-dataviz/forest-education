@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { CountryData, Region, REGION_COLORS } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, TreePine } from "lucide-react";
 
 export default function Home() {
   const [introStep, setIntroStep] = useState<0 | 1 | 2>(0); // 0=title, 1=context, 2=main
@@ -134,10 +134,9 @@ export default function Home() {
               style={{
                 background: "rgba(74, 222, 128, 0.08)",
                 border: "1px solid rgba(74, 222, 128, 0.2)",
-                fontSize: 28,
               }}
             >
-              🌳
+              <TreePine size={28} style={{ color: "var(--tree-healthy)" }} strokeWidth={1.5} />
             </div>
 
             <div>
