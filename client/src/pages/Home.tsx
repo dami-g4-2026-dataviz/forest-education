@@ -317,7 +317,7 @@ export default function Home() {
             className="absolute inset-0 z-30 pointer-events-none"
           >
             {/* Global Message Overlay - Visible in Explore Mode */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none px-4 w-full max-w-2xl">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none px-4 w-full max-w-2xl">
               <div 
                 className="px-6 py-3 rounded-2xl backdrop-blur-xl border border-white/10"
                 style={{ background: "rgba(8, 16, 12, 0.6)" }}
