@@ -1,0 +1,61 @@
+code,name,region,yearsInSchool,lays,learningPoverty,enrollmentRate,gpiPrimary,spendingPctGDP
+NER,Niger,Sub-Saharan Africa,5.3,2.1,92,67,0.86,3.5
+MLI,Mali,Sub-Saharan Africa,5.8,2.4,90,62,0.82,3.8
+TCD,Chad,Sub-Saharan Africa,5.1,2.2,89,71,0.62,2.5
+BFA,Burkina Faso,Sub-Saharan Africa,6.2,2.8,88,74,0.88,4.1
+MOZ,Mozambique,Sub-Saharan Africa,7.1,3.2,87,81,0.94,5.2
+NGA,Nigeria,Sub-Saharan Africa,8.2,4.3,85,76,0.91,4.5
+ETH,Ethiopia,Sub-Saharan Africa,7.8,3.8,84,88,0.89,4.7
+TZA,Tanzania,Sub-Saharan Africa,8.5,4.1,82,91,0.98,3.4
+UGA,Uganda,Sub-Saharan Africa,8.9,4.5,80,93,0.97,2.8
+KEN,Kenya,Sub-Saharan Africa,9.5,5.2,74,96,1.01,5.1
+GHA,Ghana,Sub-Saharan Africa,9.8,5.5,71,94,0.99,4.2
+ZAF,South Africa,Sub-Saharan Africa,11.2,6.8,58,98,1.04,6.2
+RWA,Rwanda,Sub-Saharan Africa,9.2,5.8,67,97,1.02,3.1
+SEN,Senegal,Sub-Saharan Africa,8.1,3.9,79,82,0.93,5.5
+CMR,Cameroon,Sub-Saharan Africa,8.4,4.2,76,85,0.90,3.2
+AFG,Afghanistan,South Asia,7.2,3.5,80,68,0.55,3.2
+PAK,Pakistan,South Asia,8.5,4.2,72,75,0.84,2.8
+BGD,Bangladesh,South Asia,10.2,5.8,55,95,1.08,2.1
+IND,India,South Asia,10.8,5.8,55,96,1.01,4.5
+NPL,Nepal,South Asia,10.5,5.5,58,94,1.03,5.1
+LKA,Sri Lanka,South Asia,12.8,9.2,18,99,1.05,2.1
+PNG,Papua New Guinea,East Asia & Pacific,7.5,4.1,68,78,0.88,1.9
+PHL,Philippines,East Asia & Pacific,12.2,7.8,32,97,1.15,3.6
+IDN,Indonesia,East Asia & Pacific,12.5,8.2,28,98,1.01,3.5
+VNM,Vietnam,East Asia & Pacific,12.9,10.2,12,99,1.02,4.2
+CHN,China,East Asia & Pacific,13.8,11.2,8,99,1.01,4.1
+KOR,South Korea,East Asia & Pacific,14.2,12.5,4,99,1.0,5.1
+SGP,Singapore,East Asia & Pacific,13.6,12.8,2,99,1.0,2.9
+JPN,Japan,East Asia & Pacific,13.9,12.4,3,99,1.0,3.2
+AUS,Australia,East Asia & Pacific,13.5,12.1,5,99,1.02,5.5
+TJK,Tajikistan,Europe & Central Asia,11.2,7.5,38,95,0.96,5.4
+UZB,Uzbekistan,Europe & Central Asia,11.8,8.2,28,97,0.99,6.1
+TUR,Turkey,Europe & Central Asia,12.5,9.1,22,98,1.01,4.2
+POL,Poland,Europe & Central Asia,13.8,12.2,5,99,1.01,4.9
+DEU,Germany,Europe & Central Asia,13.9,12.3,4,99,1.0,4.9
+FRA,France,Europe & Central Asia,13.7,12.1,5,99,1.01,5.5
+FIN,Finland,Europe & Central Asia,13.9,12.9,2,99,1.01,5.8
+NOR,Norway,Europe & Central Asia,13.8,12.7,2,99,1.01,7.2
+SWE,Sweden,Europe & Central Asia,13.7,12.5,3,99,1.01,6.5
+HTI,Haiti,Latin America & Caribbean,7.2,3.8,78,72,1.01,2.1
+NIC,Nicaragua,Latin America & Caribbean,9.5,5.8,52,89,1.05,4.5
+HND,Honduras,Latin America & Caribbean,10.2,6.2,48,91,1.22,5.9
+GTM,Guatemala,Latin America & Caribbean,9.8,5.9,51,87,0.98,3.1
+BOL,Bolivia,Latin America & Caribbean,11.5,7.2,40,94,1.01,7.3
+PER,Peru,Latin America & Caribbean,11.8,7.5,38,95,1.0,3.9
+COL,Colombia,Latin America & Caribbean,12.2,7.9,35,96,1.02,4.5
+BRA,Brazil,Latin America & Caribbean,11.7,7.6,48,97,1.18,6.2
+MEX,Mexico,Latin America & Caribbean,12.5,8.1,33,97,1.02,4.3
+ARG,Argentina,Latin America & Caribbean,13.1,9.2,22,98,1.04,5.5
+CHL,Chile,Latin America & Caribbean,13.2,9.8,18,99,1.01,5.4
+YEM,Yemen,Middle East & North Africa,7.8,3.9,74,71,0.71,4.6
+IRQ,Iraq,Middle East & North Africa,9.2,5.1,60,84,0.88,5.8
+MAR,Morocco,Middle East & North Africa,10.5,5.8,52,91,0.94,6.8
+DZA,Algeria,Middle East & North Africa,11.2,6.5,44,95,1.01,6.2
+EGY,Egypt,Middle East & North Africa,11.5,6.8,42,95,0.97,3.8
+TUN,Tunisia,Middle East & North Africa,12.1,7.8,34,97,1.02,6.6
+JOR,Jordan,Middle East & North Africa,12.8,8.5,28,98,1.01,3.2
+SAU,Saudi Arabia,Middle East & North Africa,13.2,9.1,20,98,0.99,7.8
+USA,United States,North America,13.3,11.4,7,99,1.0,5.0
+CAN,Canada,North America,13.6,12.2,4,99,1.01,5.3
