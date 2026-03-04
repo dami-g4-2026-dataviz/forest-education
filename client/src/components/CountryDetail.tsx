@@ -166,8 +166,22 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
       </div>
 
       {/* Footer */}
-      <div className="p-4 text-xs" style={{ color: "var(--text-secondary)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        Sources: World Bank Human Capital Index, UNESCO UIS, World Bank Learning Poverty Data
+      <div
+        className="p-4 flex items-center justify-between text-xs"
+        style={{ color: "var(--text-secondary)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <span>World Bank HCI · UNESCO UIS · WB Learning Poverty</span>
+        <a
+          href={`https://data.worldbank.org/country/${country.code.toLowerCase()}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors"
+          style={{ color: color, textDecoration: "none", whiteSpace: "nowrap", marginLeft: 12 }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+        >
+          View source →
+        </a>
       </div>
     </div>
     </div>

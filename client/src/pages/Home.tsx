@@ -2,26 +2,41 @@ import { useState, useCallback, useEffect } from "react";
 import { CountryData, Region, REGION_COLORS } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
+import { ChevronDown } from "lucide-react";
 
 export default function Home() {
+  const [introStep, setIntroStep] = useState<0 | 1 | 2>(0); // 0=title, 1=context, 2=main
   const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
-  const [showIntro, setShowIntro] = useState(true);
 
+  const showIntro = introStep < 2;
+
+  const advanceIntro = useCallback(() => {
+    setIntroStep((s) => (s < 2 ? ((s + 1) as 0 | 1 | 2) : s));
+  }, []);
+
+  // Keyboard & scroll handlers
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (showIntro) {
-        if (e.key === "Enter" || e.key === " ") setShowIntro(false);
-        return;
-      }
-      if (e.key === "Escape") {
+    const onKey = (e: KeyboardEvent) => {
+      if (introStep === 0 && (e.key === "Enter" || e.key === " " || e.key === "ArrowDown")) {
+        advanceIntro();
+      } else if (introStep === 1 && (e.key === "Enter" || e.key === " ")) {
+        advanceIntro();
+      } else if (introStep === 2 && e.key === "Escape") {
         setSelectedCountry(null);
         setActiveRegion(null);
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [showIntro]);
+    const onWheel = (e: WheelEvent) => {
+      if (introStep === 0 && e.deltaY > 0) advanceIntro();
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("wheel", onWheel);
+    };
+  }, [introStep, advanceIntro]);
 
   const handleCountryClick = useCallback((country: CountryData) => {
     setSelectedCountry(country);
@@ -36,7 +51,7 @@ export default function Home() {
       className="w-screen h-screen overflow-hidden relative"
       style={{ background: "var(--forest-deep)" }}
     >
-      {/* Forest canvas — always rendered, even during intro */}
+      {/* Forest canvas — always rendered */}
       <div className="absolute inset-0">
         <Forest
           highlightMetric={null}
@@ -46,21 +61,22 @@ export default function Home() {
         />
       </div>
 
-      {/* ─── Intro overlay ──────────────────────────────────────────────────── */}
-      {showIntro && (
+      {/* ─── Screen 1: Title ────────────────────────────────────────────────── */}
+      {introStep === 0 && (
         <div
-          className="absolute inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(4,10,7,0.82)", backdropFilter: "blur(2px)" }}
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+          style={{ background: "rgba(4,10,7,0.88)", backdropFilter: "blur(2px)" }}
         >
-          <div className="relative text-center max-w-xl px-8 z-10">
+          <div className="text-center px-8">
             {/* SDG badge */}
             <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs mb-10"
               style={{
                 background: "rgba(74, 222, 128, 0.08)",
                 border: "1px solid rgba(74, 222, 128, 0.22)",
                 color: "var(--tree-healthy)",
                 fontFamily: "Space Mono, monospace",
+                letterSpacing: "0.05em",
               }}
             >
               <div
@@ -70,11 +86,10 @@ export default function Home() {
               SDG 4 · Quality Education · Data Story
             </div>
 
-            {/* Title */}
             <h1
-              className="font-black leading-none mb-8"
+              className="font-black leading-none"
               style={{
-                fontSize: "clamp(48px, 7vw, 80px)",
+                fontSize: "clamp(52px, 8vw, 90px)",
                 color: "var(--text-primary)",
                 fontFamily: "Playfair Display, serif",
               }}
@@ -83,26 +98,87 @@ export default function Home() {
               <br />
               <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
             </h1>
+          </div>
 
-            {/* CTA */}
+          {/* Scroll indicator */}
+          <button
+            onClick={advanceIntro}
+            className="absolute bottom-10 flex flex-col items-center gap-2 opacity-40 hover:opacity-70 transition-opacity"
+            style={{ color: "var(--text-primary)" }}
+          >
+            <span className="text-xs" style={{ fontFamily: "Space Mono, monospace", letterSpacing: "0.12em" }}>
+              SCROLL
+            </span>
+            <ChevronDown size={20} className="animate-bounce" />
+          </button>
+        </div>
+      )}
+
+      {/* ─── Screen 2: Context + CTA ───────────────────────────────────────── */}
+      {introStep === 1 && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(4,10,7,0.72)", backdropFilter: "blur(1px)" }}
+        >
+          <div
+            className="text-center max-w-lg px-10 py-12 rounded-3xl flex flex-col items-center gap-6"
+            style={{
+              background: "rgba(8, 16, 12, 0.82)",
+              border: "1px solid rgba(74, 222, 128, 0.1)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            {/* Tree icon */}
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(74, 222, 128, 0.08)",
+                border: "1px solid rgba(74, 222, 128, 0.2)",
+                fontSize: 28,
+              }}
+            >
+              🌳
+            </div>
+
+            <div>
+              <p
+                className="text-base leading-relaxed mb-3"
+                style={{ color: "rgba(255,255,255,0.75)", fontWeight: 300 }}
+              >
+                Every tree is a country. Its trunk is how long children stay in school.
+                Its canopy is how much they actually learn.
+              </p>
+              <p
+                className="text-sm leading-relaxed"
+                style={{ color: "rgba(255,255,255,0.38)" }}
+              >
+                250 million children are enrolled — but millions leave without basic skills.
+                This is the story enrollment rates don't tell.
+              </p>
+            </div>
+
             <button
-              onClick={() => setShowIntro(false)}
-              className="px-10 py-4 rounded-2xl text-base font-semibold transition-all"
+              onClick={advanceIntro}
+              className="px-10 py-3.5 rounded-2xl text-sm font-semibold tracking-wide transition-all"
               style={{
                 background: "var(--tree-healthy)",
                 color: "var(--forest-deep)",
-                boxShadow: "0 0 40px rgba(74, 222, 128, 0.3)",
+                boxShadow: "0 0 32px rgba(74, 222, 128, 0.28)",
                 fontFamily: "DM Sans, sans-serif",
               }}
             >
               Enter the Forest →
             </button>
+
+            <span className="text-xs" style={{ color: "rgba(255,255,255,0.15)", fontFamily: "Space Mono, monospace" }}>
+              Data: World Bank HCI · UNESCO UIS · World Bank Learning Poverty
+            </span>
           </div>
         </div>
       )}
 
-      {/* ─── Main UI (hidden during intro) ────────────────────────────────── */}
-      {!showIntro && (
+      {/* ─── Main UI ───────────────────────────────────────────────────────── */}
+      {introStep === 2 && (
         <>
           {/* Header bar */}
           <div
@@ -164,7 +240,7 @@ export default function Home() {
 
             {/* About button */}
             <button
-              onClick={() => setShowIntro(true)}
+              onClick={() => setIntroStep(1)}
               className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
               style={{
                 color: "rgba(255,255,255,0.35)",
