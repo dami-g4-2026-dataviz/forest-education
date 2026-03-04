@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { countries, CountryData, Region, REGION_COLORS } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
-import { ChevronDown, TreePine, ArrowRight } from "lucide-react";
+import Legend from "@/components/Legend";
+import { ChevronDown, TreePine, ArrowRight, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NARRATIVE_CHAPTERS = [
@@ -28,6 +29,7 @@ export default function Home() {
   const [narrativeChapter, setNarrativeChapter] = useState(0);
   const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
+  const [highlightMetric, setHighlightMetric] = useState<string | null>(null);
 
   const isNarrative = introStep === 2 && narrativeChapter < NARRATIVE_CHAPTERS.length;
   const isFreeExplore = introStep === 2 && narrativeChapter >= NARRATIVE_CHAPTERS.length;
@@ -57,6 +59,7 @@ export default function Home() {
       } else if (isFreeExplore && e.key === "Escape") {
         setSelectedCountry(null);
         setActiveRegion(null);
+        setHighlightMetric(null);
       }
     };
     const onWheel = (e: WheelEvent) => {
@@ -74,7 +77,7 @@ export default function Home() {
     setSelectedCountry(country);
   }, []);
 
-  const handleRegionClick = useCallback((region: Region) => {
+  const handleRegionClick = useCallback((region: Region | null) => {
     setActiveRegion((r) => (r === region ? null : region));
   }, []);
 
@@ -88,7 +91,7 @@ export default function Home() {
       {/* Forest canvas — always rendered */}
       <div className="absolute inset-0">
         <Forest
-          highlightMetric={null}
+          highlightMetric={highlightMetric}
           activeRegion={activeRegion}
           onCountryClick={isFreeExplore ? handleCountryClick : () => {}}
           chapterId={narrativeChapter}
@@ -366,7 +369,21 @@ export default function Home() {
                 })}
               </div>
 
-              {/* About button */}
+              {/* Highlight toggle */}
+              <button
+                onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
+                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: highlightMetric ? "rgba(239, 68, 68, 0.15)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${highlightMetric ? "#EF4444" : "rgba(255,255,255,0.08)"}`,
+                  color: highlightMetric ? "#EF4444" : "rgba(255,255,255,0.45)",
+                }}
+              >
+                <Settings2 size={14} />
+                Highlight Poverty
+              </button>
+
+              {/* Restart button */}
               <button
                 onClick={() => {
                   setIntroStep(1);
@@ -382,7 +399,16 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Country detail modal wrapper to make it clickable since explore container is pointer-events-none */}
+            {/* Legend - positioned top left, below header */}
+            <div className="absolute top-20 left-6 z-30 pointer-events-auto">
+              <Legend 
+                activeRegion={activeRegion}
+                onRegionClick={handleRegionClick}
+                highlightMetric={highlightMetric}
+              />
+            </div>
+
+            {/* Country detail modal wrapper */}
             <div className="absolute inset-0 pointer-events-none">
               {selectedCountry && (
                 <div className="pointer-events-auto h-full w-full">
