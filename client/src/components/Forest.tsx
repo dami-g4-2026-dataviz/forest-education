@@ -26,12 +26,11 @@ const REGION_ORDER: Region[] = [
   "North America",
 ];
 
-function layoutTrees(width: number, height: number) {
+function layoutTrees(containerWidth: number, height: number) {
   // Ground is at 85% of height — trees grow upward into the sky
   const groundY = Math.round(height * 0.85);
   const marginL = 32;
   const marginR = 32;
-  const usableWidth = width - marginL - marginR;
 
   const sorted = [...countries].sort((a, b) => {
     const ra = REGION_ORDER.indexOf(a.region);
@@ -41,30 +40,40 @@ function layoutTrees(width: number, height: number) {
   });
 
   const n = sorted.length;
+
+  // Height-driven scale: tallest tree fills ~70% of the sky above ground
+  const scaleByHeight = (groundY * 0.70) / ((14 / 16) * 110);
+
+  // Each tree needs at least 60px so canopies are readable and labels visible
+  // canopyR = (avgYrs/16)*52*scale ≈ 35.75*scale; diameter ≈ 71.5*scale
+  // At scale ≈ 0.8 and spacing 60px, canopies just touch — a natural "forest" look
+  const minSpacingPx = 60;
+  const minSvgWidth = n * minSpacingPx + marginL + marginR;
+  const svgWidth = Math.max(containerWidth, minSvgWidth);
+
+  const usableWidth = svgWidth - marginL - marginR;
   const spacing = usableWidth / n;
 
-  // Scale trees based on available horizontal spacing
-  // Each tree needs enough room so canopies don't fully overlap
-  // canopyR = (yearsInSchool/16) * 52 * scale
-  // For avg yearsInSchool ~11, canopyR ≈ 35.75 * scale
-  // We want canopyR * 2 ≈ spacing * 0.85  →  scale ≈ spacing * 0.85 / (35.75 * 2)
-  // Scale: height-driven so tallest trees fill ~70% of the canvas above ground
-  // tallest tree has yearsInSchool ~14, trunkH = (14/16)*110*scale
-  // We want that to equal groundY * 0.70
-  const scaleByHeight = (groundY * 0.70) / ((14 / 16) * 110);
-  const scale = Math.max(0.6, Math.min(2.5, scaleByHeight));
+  // Width-driven scale: canopy diameter ≤ spacing
+  // avgYrs ≈ 11 → canopyR ≈ 35.75*scale, we want 2*canopyR ≈ spacing*0.9
+  const scaleByWidth = (spacing * 0.9) / (35.75 * 2);
+  const scale = Math.max(0.6, Math.min(2.5, Math.min(scaleByHeight, scaleByWidth)));
 
-  return sorted.map((country, i) => ({
-    country,
-    x: marginL + i * spacing + spacing / 2,
-    y: groundY,
-    scale,
-    delay: i * 22 + 150,
-  }));
+  return {
+    positions: sorted.map((country, i) => ({
+      country,
+      x: marginL + i * spacing + spacing / 2,
+      y: groundY,
+      scale,
+      delay: i * 22 + 150,
+    })),
+    svgWidth,
+    groundY,
+  };
 }
 
-// Deterministic star positions
-const STARS = Array.from({ length: 100 }, (_, i) => ({
+// Deterministic star positions (enough for wide canvases)
+const STARS = Array.from({ length: 250 }, (_, i) => ({
   x: (i * 137.508) % 100,
   y: (i * 97.31) % 70,
   r: 0.3 + (i % 4) * 0.3,
@@ -93,7 +102,8 @@ export default function Forest({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const treePositions = useMemo(() => layoutTrees(dims.width, dims.height), [dims]);
+  const layout = useMemo(() => layoutTrees(dims.width, dims.height), [dims]);
+  const { positions: treePositions, svgWidth, groundY } = layout;
 
   const handleHover = useCallback(
     (country: CountryData | null, x: number, y: number) => {
@@ -101,8 +111,6 @@ export default function Forest({
     },
     []
   );
-
-  const groundY = Math.round(dims.height * 0.85);
 
   const isTreeDimmed = (country: CountryData) =>
     !!(activeRegion && country.region !== activeRegion);
@@ -131,8 +139,8 @@ export default function Forest({
   }, [treePositions]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full select-none">
-      <svg width={dims.width} height={dims.height} style={{ display: "block" }}>
+    <div ref={containerRef} className="relative w-full h-full select-none overflow-x-auto">
+      <svg width={svgWidth} height={dims.height} style={{ display: "block", minWidth: svgWidth }}>
         <defs>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#040A07" />
@@ -153,15 +161,15 @@ export default function Forest({
         </defs>
 
         {/* Sky */}
-        <rect width={dims.width} height={dims.height} fill="url(#skyGrad)" />
+        <rect width={svgWidth} height={dims.height} fill="url(#skyGrad)" />
         {/* Moon ambient glow */}
-        <rect width={dims.width} height={dims.height} fill="url(#moonGlow)" />
+        <rect width={svgWidth} height={dims.height} fill="url(#moonGlow)" />
 
         {/* Stars */}
         {STARS.map((s, i) => (
           <circle
             key={i}
-            cx={(s.x / 100) * dims.width}
+            cx={(s.x / 100) * svgWidth}
             cy={(s.y / 100) * groundY}
             r={s.r}
             fill="white"
@@ -171,9 +179,9 @@ export default function Forest({
 
         {/* Fog band — sits at canopy level */}
         <rect
-          x={-dims.width * 0.1}
+          x={-svgWidth * 0.1}
           y={groundY - 200}
-          width={dims.width * 1.2}
+          width={svgWidth * 1.2}
           height={60}
           fill="rgba(74, 222, 128, 0.018)"
           filter="url(#fogBlur)"
@@ -183,7 +191,7 @@ export default function Forest({
         <rect
           x={0}
           y={groundY}
-          width={dims.width}
+          width={svgWidth}
           height={dims.height - groundY}
           fill="url(#groundGrad)"
         />
@@ -192,7 +200,7 @@ export default function Forest({
         <line
           x1={0}
           y1={groundY}
-          x2={dims.width}
+          x2={svgWidth}
           y2={groundY}
           stroke="rgba(74, 222, 128, 0.14)"
           strokeWidth={1}

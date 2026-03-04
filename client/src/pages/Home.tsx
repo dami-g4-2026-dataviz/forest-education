@@ -261,7 +261,7 @@ export default function Home() {
           whiteSpace: "nowrap",
         }}
       >
-        Hover to explore · Click for details · ← → keys to navigate
+        Scroll forest left/right · Hover to explore · Click for details · ← → keys to navigate chapters
       </div>
 
       {/* Narrative panel — bottom left */}
