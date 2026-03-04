@@ -6,10 +6,35 @@ interface CountryDetailProps {
   onClose: () => void;
 }
 
-function StatRow({ label, value, unit, color }: { label: string; value: number | string; unit?: string; color?: string }) {
+const METRIC_SOURCES: Record<string, { label: string; url: string }> = {
+  yearsInSchool: { label: "UNESCO UIS", url: "https://uis.unesco.org/en/topic/out-school-children-and-youth" },
+  lays: { label: "World Bank HCI", url: "https://www.worldbank.org/en/publication/human-capital" },
+  learningPoverty: { label: "WB Learning Poverty", url: "https://www.worldbank.org/en/topic/education/brief/learning-poverty" },
+  enrollmentRate: { label: "UNESCO UIS", url: "https://uis.unesco.org/en/topic/out-school-children-and-youth" },
+  gpiPrimary: { label: "UNESCO UIS", url: "https://uis.unesco.org/en/topic/gender-parity-education" },
+  spendingPctGDP: { label: "World Bank EdStats", url: "https://datatopics.worldbank.org/education/" },
+};
+
+function StatRow({ label, value, unit, color, sourceKey }: { label: string; value: number | string; unit?: string; color?: string; sourceKey?: string }) {
+  const source = sourceKey ? METRIC_SOURCES[sourceKey] : undefined;
   return (
     <div className="flex justify-between items-baseline py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-      <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{label}</span>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{label}</span>
+        {source && (
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs transition-opacity"
+            style={{ color: "rgba(255,255,255,0.2)", fontFamily: "Space Mono, monospace", textDecoration: "none" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.2)")}
+          >
+            ↗ {source.label}
+          </a>
+        )}
+      </div>
       <span
         className="font-bold text-base"
         style={{
@@ -143,26 +168,29 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
 
       {/* Stats */}
       <div className="flex-1 overflow-y-auto p-6">
-        <StatRow label="Years in School" value={country.yearsInSchool} unit=" yrs" />
+        <StatRow label="Years in School" value={country.yearsInSchool} unit=" yrs" sourceKey="yearsInSchool" />
         <StatRow
           label="Learning-Adj. Years (LAYS)"
           value={country.lays}
           unit=" yrs"
           color={color}
+          sourceKey="lays"
         />
         <StatRow
           label="Learning Poverty"
           value={country.learningPoverty}
           unit="%"
           color={country.learningPoverty > 60 ? "#EF4444" : country.learningPoverty > 30 ? "#F97316" : "#4ADE80"}
+          sourceKey="learningPoverty"
         />
-        <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" />
+        <StatRow label="Primary Enrollment" value={country.enrollmentRate} unit="%" sourceKey="enrollmentRate" />
         <StatRow
           label="Gender Parity Index"
           value={country.gpiPrimary}
           color={country.gpiPrimary < 0.9 ? "#EF4444" : country.gpiPrimary > 1.1 ? "#06B6D4" : "#4ADE80"}
+          sourceKey="gpiPrimary"
         />
-        <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" />
+        <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" sourceKey="spendingPctGDP" />
       </div>
 
       {/* Footer */}

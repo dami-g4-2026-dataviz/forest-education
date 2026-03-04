@@ -115,6 +115,16 @@ export default function Tree({
       }}
       onClick={() => onClick?.(country)}
     >
+      {/* Root flare at base */}
+      <ellipse
+        cx={0}
+        cy={0}
+        rx={trunkW * 1.5}
+        ry={trunkW * 0.45}
+        fill={color}
+        opacity={0.18 + learningRatio * 0.12}
+      />
+
       {/* Ground glow for healthy trees */}
       {learningRatio > 0.55 && (
         <ellipse
@@ -127,13 +137,9 @@ export default function Tree({
         />
       )}
 
-      {/* Trunk */}
-      <rect
-        x={-trunkW / 2}
-        y={-trunkH}
-        width={trunkW}
-        height={trunkH}
-        rx={trunkW / 2}
+      {/* Trunk — tapered polygon (wider at base) */}
+      <polygon
+        points={`${-trunkW / 2},0 ${trunkW / 2},0 ${trunkW * 0.28},${-trunkH} ${-trunkW * 0.28},${-trunkH}`}
         fill={color}
         opacity={0.5 + learningRatio * 0.4}
         style={{
@@ -142,7 +148,29 @@ export default function Tree({
         }}
       />
 
-      {/* Bare branches — only in normal (non-dense) mode */}
+      {/* Side branches — sparse on all trees, denser on healthier ones */}
+      {!dense && Array.from({ length: Math.round(1 + learningRatio * 2) }).map((_, i) => {
+        const side = i % 2 === 0 ? 1 : -1;
+        const heightFrac = 0.45 + i * 0.15;
+        const branchY = -trunkH * heightFrac;
+        const branchLen = canopyR * (0.28 + learningRatio * 0.18);
+        const angle = side * (0.55 + sr(seed + i * 7) * 0.25);
+        return (
+          <line
+            key={`branch-${i}`}
+            x1={0}
+            y1={branchY}
+            x2={Math.sin(angle) * branchLen}
+            y2={branchY - Math.cos(angle * 0.6) * branchLen * 0.5}
+            stroke={color}
+            strokeWidth={trunkW * (0.3 - i * 0.06)}
+            opacity={0.3 + learningRatio * 0.3}
+            strokeLinecap="round"
+          />
+        );
+      })}
+
+      {/* Bare spindly branches — crisis trees */}
       {!dense && learningRatio < 0.4 && (
         <>
           {[
@@ -158,23 +186,27 @@ export default function Tree({
               x2={dx * canopyR * 0.55}
               y2={-trunkH * 0.82 + dy * canopyR * 0.45}
               stroke={color}
-              strokeWidth={trunkW * 0.35}
-              opacity={0.25 + learningRatio * 0.25}
+              strokeWidth={trunkW * 0.28}
+              opacity={0.2 + learningRatio * 0.2}
               strokeLinecap="round"
             />
           ))}
         </>
       )}
 
-      {/* Canopy layers */}
+      {/* Canopy layers — stacked organic blobs */}
       {Array.from({ length: numLayers }).map((_, i) => {
         const frac = numLayers > 1 ? i / (numLayers - 1) : 0;
-        const rx = canopyR * (1 - frac * 0.42);
-        const ry = rx * 0.62;
-        const cy = -trunkH - canopyR * 0.3 - frac * canopyR * 0.8;
-        const jx = dense ? 0 : (sr(seed + i * 13) - 0.5) * 5 * scale;
-        const layerOpacity =
-          (0.22 + learningRatio * 0.32) * (1 - frac * 0.15);
+        // Wider at the middle, narrowing toward top (natural deciduous silhouette)
+        const widthPeak = 0.4;
+        const widthShape = frac < widthPeak
+          ? frac / widthPeak
+          : 1 - (frac - widthPeak) / (1 - widthPeak);
+        const rx = canopyR * (0.55 + widthShape * 0.45);
+        const ry = rx * (0.58 + learningRatio * 0.1);
+        const cy = -trunkH - canopyR * 0.2 - frac * canopyR * 0.95;
+        const jx = dense ? 0 : (sr(seed + i * 13) - 0.5) * 6 * scale;
+        const layerOpacity = (0.2 + learningRatio * 0.32) * (1 - frac * 0.12);
         const isTopLayer = i === numLayers - 1;
 
         return (
@@ -188,11 +220,29 @@ export default function Tree({
             opacity={layerOpacity}
             style={
               isTopLayer && learningRatio > 0.65
-                ? {
-                    filter: `drop-shadow(0 0 ${glowSize * 0.55}px ${color})`,
-                  }
+                ? { filter: `drop-shadow(0 0 ${glowSize * 0.55}px ${color})` }
                 : undefined
             }
+          />
+        );
+      })}
+
+      {/* Satellite foliage clusters for healthy trees — gives organic crown shape */}
+      {!dense && learningRatio > 0.5 && Array.from({ length: Math.round(learningRatio * 3) }).map((_, i) => {
+        const angle = (sr(seed + i * 31) * Math.PI * 2);
+        const dist = canopyR * (0.55 + sr(seed + i * 17) * 0.3);
+        const clusterR = canopyR * (0.22 + sr(seed + i * 23) * 0.18);
+        const cx = Math.cos(angle) * dist * 0.7;
+        const cy = -trunkH - canopyR * 0.6 + Math.sin(angle) * dist * 0.45;
+        return (
+          <ellipse
+            key={`cluster-${i}`}
+            cx={cx}
+            cy={cy}
+            rx={clusterR}
+            ry={clusterR * 0.72}
+            fill={color}
+            opacity={0.12 + learningRatio * 0.14}
           />
         );
       })}
