@@ -10,17 +10,22 @@ const NARRATIVE_CHAPTERS = [
   {
     code: "NER",
     headline: "5 years in school. 2 years of learning.",
-    subtext: "92% of 10-year-olds in Niger cannot read a simple sentence.",
+    subtext: "92% of 10-year-olds in Niger cannot read a simple sentence. The trunk is tall, but the canopy is bare.",
   },
   {
     code: "IND",
-    headline: "10 years enrolled. Half of it lost.",
-    subtext: "High enrollment hides a learning crisis affecting 250 million children.",
+    headline: "High enrollment hides a learning crisis.",
+    subtext: "Since 1970, enrollment has doubled. But in South Asia, half of school time translates to zero learning.",
+  },
+  {
+    code: "VNM",
+    headline: "The Efficiency Exception.",
+    subtext: "In Vietnam, 12.9 years of school result in 10.2 years of real learning. A dense canopy shows what quality looks like.",
   },
   {
     code: "SGP",
-    headline: "13 years in school. 12.8 years of learning.",
-    subtext: "The gap between Niger and Singapore is 10 years of real learning — a full childhood.",
+    headline: "A childhood apart.",
+    subtext: "The gap between the best and worst education systems is 10 years of real learning — a full childhood lost.",
   },
 ];
 
@@ -311,6 +316,21 @@ export default function Home() {
             transition={{ duration: 1 }}
             className="absolute inset-0 z-30 pointer-events-none"
           >
+            {/* Global Message Overlay - Visible in Explore Mode */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none px-4 w-full max-w-2xl">
+              <div 
+                className="px-6 py-3 rounded-2xl backdrop-blur-xl border border-white/10"
+                style={{ background: "rgba(8, 16, 12, 0.6)" }}
+              >
+                <h2 className="text-sm md:text-base font-medium text-white/90 mb-1" style={{ fontFamily: "Playfair Display, serif" }}>
+                  "The world has solved the problem of enrollment, but it is failing the problem of learning."
+                </h2>
+                <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]" style={{ fontFamily: "Space Mono, monospace" }}>
+                  The Silent Forest · SDG 4.1.1
+                </p>
+              </div>
+            </div>
+
             {/* Header bar */}
             <div
               className="absolute top-0 left-0 right-0 z-30 flex items-center gap-4 px-6 py-3 pointer-events-auto"
