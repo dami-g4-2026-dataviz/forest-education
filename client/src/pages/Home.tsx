@@ -269,28 +269,32 @@ export default function Home() {
                   Every tree is a country. Two dimensions. One picture.
                 </p>
 
-                {/* Tree anatomy key */}
-                <div className="flex flex-col gap-2 mb-4 text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center">
-                      <div className="w-1.5 h-5 rounded-full" style={{ background: "rgba(255,255,255,0.3)" }} />
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.8)" }}>Trunk height</span>
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}> — years enrolled in school</span>
-                    </div>
+                {/* Example trees: Niger vs Finland */}
+                <div className="flex justify-around items-end mb-2 gap-4">
+                  {/* Niger */}
+                  <div className="flex flex-col items-center gap-1">
+                    <svg width="52" height="80" viewBox="0 0 52 80">
+                      {/* canopy */}
+                      <circle cx="26" cy="38" r="10" fill="#EF4444" opacity="0.7" />
+                      {/* trunk */}
+                      <rect x="23" y="46" width="6" height="28" rx="2" fill="rgba(255,255,255,0.25)" />
+                    </svg>
+                    <span className="text-[10px] text-center leading-tight" style={{ color: "#EF4444", fontFamily: "Space Mono, monospace" }}>Niger<br/>2 yrs learning</span>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-1 w-5 h-5 rounded-full flex-shrink-0"
-                      style={{ background: "rgba(74,222,128,0.5)", boxShadow: "0 0 8px rgba(74,222,128,0.3)" }}
-                    />
-                    <div>
-                      <span className="text-xs font-semibold" style={{ color: "var(--tree-healthy)" }}>Canopy size = LAYS</span>
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}> — Learning-Adjusted Years of Schooling. A World Bank metric that adjusts school years by actual test-score quality. A country where kids learn half of what they're taught has half the canopy.</span>
-                    </div>
+                  {/* Finland */}
+                  <div className="flex flex-col items-center gap-1">
+                    <svg width="52" height="80" viewBox="0 0 52 80">
+                      {/* canopy */}
+                      <circle cx="26" cy="20" r="18" fill="var(--tree-healthy)" opacity="0.75" />
+                      {/* trunk */}
+                      <rect x="23" y="36" width="6" height="38" rx="2" fill="rgba(255,255,255,0.25)" />
+                    </svg>
+                    <span className="text-[10px] text-center leading-tight" style={{ color: "var(--tree-healthy)", fontFamily: "Space Mono, monospace" }}>Finland<br/>13 yrs learning</span>
                   </div>
                 </div>
+                <p className="text-[10px] mb-4 text-center" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "Space Mono, monospace" }}>
+                  Trunk = years enrolled · Canopy = years actually learned
+                </p>
 
                 <p
                   className="text-[10px]"
@@ -348,6 +352,15 @@ export default function Home() {
                   />
                 ))}
               </div>
+
+              {currentChapter.region && (
+                <div
+                  className="text-[10px] mb-3"
+                  style={{ color: currentChapter.regionColor ?? undefined, fontFamily: "Space Mono, monospace", letterSpacing: "0.1em" }}
+                >
+                  {currentChapter.region.toUpperCase()}
+                </div>
+              )}
 
               <h2
                 className="text-3xl font-bold mb-4 leading-tight text-white"
