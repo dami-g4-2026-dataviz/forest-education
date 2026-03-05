@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { countries, CountryData, Region, REGION_COLORS } from "@/lib/educationData";
+import { countries, CountryData, Region } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
 import Legend from "@/components/Legend";
@@ -420,31 +420,7 @@ export default function Home() {
                 </span>
               </div>
 
-              {/* Region filter pills */}
-              <div className="flex items-center gap-2 flex-1 flex-wrap">
-                {(Object.entries(REGION_COLORS) as [Region, string][]).map(([region, color]) => {
-                  const isActive = activeRegion === region;
-                  return (
-                    <button
-                      key={region}
-                      onClick={() => handleRegionClick(region)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full transition-all"
-                      style={{
-                        background: isActive ? `${color}25` : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${isActive ? color : "rgba(255,255,255,0.08)"}`,
-                        color: isActive ? color : "rgba(255,255,255,0.45)",
-                        fontFamily: "Space Mono, monospace",
-                      }}
-                    >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: color, opacity: isActive ? 1 : 0.5 }}
-                      />
-                      {region}
-                    </button>
-                  );
-                })}
-              </div>
+              <div className="flex-1" />
 
               {/* Highlight toggle */}
               <button
