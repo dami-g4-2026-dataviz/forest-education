@@ -218,19 +218,30 @@ export default function Home() {
               </motion.div>
 
               <div>
+                {/* Big stat callout */}
+                <div className="mb-5">
+                  <div
+                    className="font-black leading-none mb-1"
+                    style={{ fontSize: 52, color: "var(--tree-healthy)", fontFamily: "Space Mono, monospace" }}
+                  >
+                    250M
+                  </div>
+                  <div className="text-sm font-light" style={{ color: "rgba(255,255,255,0.65)" }}>
+                    children in school, not learning
+                  </div>
+                </div>
                 <p
-                  className="text-base leading-relaxed mb-3"
-                  style={{ color: "rgba(255,255,255,0.75)", fontWeight: 300 }}
+                  className="text-sm leading-relaxed mb-3"
+                  style={{ color: "rgba(255,255,255,0.65)", fontWeight: 300 }}
                 >
                   Every tree is a country. Its trunk is how long children stay in school.
                   Its canopy is how much they actually learn, measured by standardized test results.
                 </p>
                 <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "rgba(255,255,255,0.38)" }}
+                  className="text-[10px]"
+                  style={{ color: "rgba(255,255,255,0.25)", fontFamily: "Space Mono, monospace" }}
                 >
-                  250 million children are enrolled — but millions leave without basic skills.
-                  This is the story enrollment rates don't tell.
+                  Source: UNESCO Institute for Statistics, 2023
                 </p>
               </div>
 
