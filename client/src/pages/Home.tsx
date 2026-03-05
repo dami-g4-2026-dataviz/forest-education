@@ -472,6 +472,54 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Footer bar — sources + credit */}
+            <div
+              className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-2 pointer-events-auto group"
+              style={{
+                background: "linear-gradient(to top, rgba(4,10,7,0.7) 0%, transparent 100%)",
+                opacity: 0.25,
+                transition: "opacity 0.35s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.25")}
+            >
+              <div className="flex items-center gap-5">
+                <a
+                  href="https://sdgs.un.org/goals/goal4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  SDG 4.1 ↗
+                </a>
+                <a
+                  href="https://www.worldbank.org/en/publication/human-capital"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  World Bank HCI ↗
+                </a>
+                <a
+                  href="https://uis.unesco.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  UNESCO UIS ↗
+                </a>
+              </div>
+              <span
+                className="text-[9px] uppercase tracking-widest"
+                style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}
+              >
+                The Learning Forest · Data as of 2024
+              </span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
