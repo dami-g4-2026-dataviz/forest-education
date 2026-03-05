@@ -3,7 +3,8 @@ import { countries, CountryData, Region } from "@/lib/educationData";
 import Forest from "@/components/Forest";
 import CountryDetail from "@/components/CountryDetail";
 import Legend from "@/components/Legend";
-import { ChevronDown, TreePine, ArrowRight, Settings2 } from "lucide-react";
+import ScatterView from "@/components/ScatterView";
+import { ChevronDown, TreePine, ArrowRight, Settings2, ScatterChart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NARRATIVE_CHAPTERS: {
@@ -469,6 +470,20 @@ export default function Home() {
 
               <div className="flex-1" />
 
+              {/* Scatter view toggle */}
+              <button
+                onClick={() => setShowScatter((s) => !s)}
+                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
+                  color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
+                }}
+              >
+                <ScatterChart size={14} />
+                Scatter View
+              </button>
+
               {/* Highlight toggle */}
               <button
                 onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
@@ -519,6 +534,51 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Scatter plot overlay */}
+            <AnimatePresence>
+              {showScatter && (
+                <motion.div
+                  key="scatter"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 z-40 flex items-center justify-center pointer-events-auto"
+                  style={{ backdropFilter: "blur(8px)", background: "rgba(4,10,7,0.7)" }}
+                  onClick={() => setShowScatter(false)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.92, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.92, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="rounded-3xl p-6"
+                    style={{
+                      background: "rgba(8,16,12,0.95)",
+                      border: "1px solid rgba(74,222,128,0.12)",
+                      width: "calc(100vw - 48px)",
+                      height: "calc(100vh - 48px)",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-2 px-2">
+                      <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}>
+                        Enrollment vs. Learning · all countries
+                      </span>
+                      <button
+                        onClick={() => setShowScatter(false)}
+                        className="text-xs opacity-40 hover:opacity-100 transition-opacity"
+                        style={{ color: "white", fontFamily: "Space Mono, monospace" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ScatterView countries={countries} activeRegion={activeRegion} />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Footer bar — sources + credit */}
             <div
