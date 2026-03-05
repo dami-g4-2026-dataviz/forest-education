@@ -174,13 +174,8 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
             </p>
             {lostYears > 0.5 && (
-<<<<<<< HEAD:client/src/components/CountryDetail.tsx
-              <p className="mt-4 text-sm text-white/60 italic">
-                “{lostYears.toFixed(1)} years of schooling are lost to low education quality.”
-=======
               <p className="mt-4 text-sm text-white/40 italic">
                 &ldquo;{lostYears.toFixed(1)} years of schooling are lost to low education quality.&rdquo;
->>>>>>> origin:web/components/country-detail.tsx
               </p>
             )}
           </div>
