@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { ChevronDown, TreePine, ArrowRight, Settings2 } from "lucide-react";
+import { ChevronDown, TreePine, ArrowRight, Settings2, ScatterChart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CountryData, Region } from "@/lib/types";
 import { REGION_COLORS, NARRATIVE_CHAPTERS } from "@/lib/constants";
 import Forest from "./forest";
 import CountryDetail from "./country-detail";
 import Legend from "./legend";
+import ScatterView from "./ScatterView";
 
 interface HomeClientProps {
   countries: CountryData[];
@@ -19,6 +20,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
   const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
   const [highlightMetric, setHighlightMetric] = useState<string | null>(null);
+  const [forestRevealDone, setForestRevealDone] = useState(false);
+  const [showScatter, setShowScatter] = useState(false);
 
   const isNarrative = introStep === 2 && narrativeChapter < NARRATIVE_CHAPTERS.length;
   const isFreeExplore = introStep === 2 && narrativeChapter >= NARRATIVE_CHAPTERS.length;
@@ -26,6 +29,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
   const advanceIntro = useCallback(() => {
     if (introStep < 2) {
       setIntroStep((s) => (s + 1) as 0 | 1 | 2);
+      if (introStep === 1) setForestRevealDone(false);
     } else if (narrativeChapter < NARRATIVE_CHAPTERS.length) {
       setNarrativeChapter((c) => c + 1);
     }
@@ -61,6 +65,14 @@ export default function HomeClient({ countries }: HomeClientProps) {
     };
   }, [introStep, advanceIntro, isNarrative, isFreeExplore]);
 
+  // Camera reveal: show full forest for 1.4s before zooming to first chapter
+  useEffect(() => {
+    if (introStep === 2) {
+      const timer = setTimeout(() => setForestRevealDone(true), 1400);
+      return () => clearTimeout(timer);
+    }
+  }, [introStep]);
+
   const handleCountryClick = useCallback((country: CountryData) => {
     setSelectedCountry(country);
   }, []);
@@ -82,8 +94,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
           highlightMetric={highlightMetric}
           activeRegion={activeRegion}
           onCountryClick={isFreeExplore ? handleCountryClick : () => {}}
-          chapterId={narrativeChapter}
-          focusedCountryCode={currentChapter?.code}
+          chapterId={isFreeExplore ? -1 : narrativeChapter}
+          focusedCountryCode={forestRevealDone ? (currentChapter?.code ?? undefined) : undefined}
         />
       </div>
 
@@ -130,10 +142,22 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   fontFamily: "Playfair Display, serif",
                 }}
               >
-                The Silent
+                The Learning
                 <br />
                 <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
               </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 1.0 }}
+                className="mt-5 text-sm"
+                style={{ color: "rgba(255,255,255,0.45)", fontFamily: "Space Mono, monospace", lineHeight: 1.8 }}
+              >
+                53% of 10-year-olds in low- and middle-income countries cannot read and understand a simple story.
+                <br />
+                This is the story enrollment rates don't tell.
+              </motion.p>
             </div>
 
             <motion.button
@@ -184,19 +208,57 @@ export default function HomeClient({ countries }: HomeClientProps) {
               </motion.div>
 
               <div>
+                {/* Big stat callout */}
+                <div className="mb-5">
+                  <div
+                    className="font-black leading-none mb-1"
+                    style={{ fontSize: 52, color: "var(--tree-healthy)", fontFamily: "Space Mono, monospace" }}
+                  >
+                    250M
+                  </div>
+                  <div className="text-sm font-light" style={{ color: "rgba(255,255,255,0.65)" }}>
+                    children in school, not learning
+                  </div>
+                </div>
                 <p
-                  className="text-base leading-relaxed mb-3"
-                  style={{ color: "rgba(255,255,255,0.75)", fontWeight: 300 }}
+                  className="text-sm leading-relaxed mb-4"
+                  style={{ color: "rgba(255,255,255,0.65)", fontWeight: 300 }}
                 >
-                  Every tree is a country. Its trunk is how long children stay in school.
-                  Its canopy is how much they actually learn.
+                  Every tree is a country. Two dimensions. One picture.
                 </p>
+
+                {/* Example trees: Niger vs Finland */}
+                <div className="flex justify-around items-end mb-2 gap-4">
+                  {/* Niger */}
+                  <div className="flex flex-col items-center gap-1">
+                    <svg width="52" height="80" viewBox="0 0 52 80">
+                      {/* canopy */}
+                      <circle cx="26" cy="38" r="10" fill="#EF4444" opacity="0.7" />
+                      {/* trunk */}
+                      <rect x="23" y="46" width="6" height="28" rx="2" fill="rgba(255,255,255,0.25)" />
+                    </svg>
+                    <span className="text-[10px] text-center leading-tight" style={{ color: "#EF4444", fontFamily: "Space Mono, monospace" }}>Niger<br/>2 yrs learning</span>
+                  </div>
+                  {/* Finland */}
+                  <div className="flex flex-col items-center gap-1">
+                    <svg width="52" height="80" viewBox="0 0 52 80">
+                      {/* canopy */}
+                      <circle cx="26" cy="20" r="18" fill="var(--tree-healthy)" opacity="0.75" />
+                      {/* trunk */}
+                      <rect x="23" y="36" width="6" height="38" rx="2" fill="rgba(255,255,255,0.25)" />
+                    </svg>
+                    <span className="text-[10px] text-center leading-tight" style={{ color: "var(--tree-healthy)", fontFamily: "Space Mono, monospace" }}>Finland<br/>13 yrs learning</span>
+                  </div>
+                </div>
+                <p className="text-[10px] mb-4 text-center" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "Space Mono, monospace" }}>
+                  Trunk = years enrolled · Canopy = years actually learned
+                </p>
+
                 <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "rgba(255,255,255,0.38)" }}
+                  className="text-[10px]"
+                  style={{ color: "rgba(255,255,255,0.25)", fontFamily: "Space Mono, monospace" }}
                 >
-                  250 million children are enrolled — but millions leave without basic skills.
-                  This is the story enrollment rates don&apos;t tell.
+                  Sources: UNESCO UIS 2023 · World Bank HCI 2024
                 </p>
               </div>
 
@@ -248,15 +310,35 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 ))}
               </div>
 
+              {currentChapter.region && (
+                <div
+                  className="text-[10px] mb-3"
+                  style={{ color: currentChapter.regionColor ?? undefined, fontFamily: "Space Mono, monospace", letterSpacing: "0.1em" }}
+                >
+                  {currentChapter.region.toUpperCase()}
+                </div>
+              )}
+
               <h2
                 className="text-3xl font-bold mb-4 leading-tight text-white"
                 style={{ fontFamily: "Playfair Display, serif" }}
               >
                 {currentChapter.headline}
               </h2>
-              <p className="text-lg text-white/60 mb-8 font-light leading-relaxed">
+              <p className="text-lg text-white/60 mb-3 font-light leading-relaxed">
                 {currentChapter.subtext}
               </p>
+
+              <div
+                className="text-[10px] mb-8 pt-2"
+                style={{
+                  color: "rgba(255,255,255,0.25)",
+                  fontFamily: "Space Mono, monospace",
+                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                ↳ "Years of learning" = Learning-Adjusted Years of Schooling (LAYS) · World Bank HCI 2024
+              </div>
 
               <div className="flex items-center justify-between">
                 <motion.button
@@ -272,13 +354,15 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   <ArrowRight size={16} />
                 </motion.button>
 
-                <button
-                  onClick={skipToExplore}
-                  className="text-xs opacity-30 hover:opacity-100 transition-opacity"
-                  style={{ color: "white", fontFamily: "Space Mono, monospace" }}
-                >
-                  Skip to explore
-                </button>
+                {narrativeChapter >= 1 && (
+                  <button
+                    onClick={skipToExplore}
+                    className="text-xs opacity-30 hover:opacity-100 transition-opacity"
+                    style={{ color: "white", fontFamily: "Space Mono, monospace" }}
+                  >
+                    Skip to explore
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
@@ -292,16 +376,16 @@ export default function HomeClient({ countries }: HomeClientProps) {
             transition={{ duration: 1 }}
             className="absolute inset-0 z-30 pointer-events-none"
           >
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none px-4 w-full max-w-2xl">
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none px-4 w-max max-w-full">
               <div
                 className="px-6 py-3 rounded-2xl backdrop-blur-xl border border-white/10"
                 style={{ background: "rgba(8, 16, 12, 0.6)" }}
               >
                 <h2 className="text-sm md:text-base font-medium text-white/90 mb-1" style={{ fontFamily: "Playfair Display, serif" }}>
-                  &ldquo;The world has solved the problem of enrollment, but it is failing the problem of learning.&rdquo;
+                  &ldquo;The world has solved the problem of enrollment, but not the problem of learning.&rdquo;
                 </h2>
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]" style={{ fontFamily: "Space Mono, monospace" }}>
-                  The Silent Forest · SDG 4.1.1
+                  The Learning Forest · SDG 4
                 </p>
               </div>
             </div>
@@ -321,7 +405,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   className="text-sm font-bold"
                   style={{ color: "var(--text-primary)", fontFamily: "Playfair Display, serif" }}
                 >
-                  The Silent Forest
+                  The Learning Forest
                 </span>
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
@@ -362,6 +446,19 @@ export default function HomeClient({ countries }: HomeClientProps) {
               </div>
 
               <button
+                onClick={() => setShowScatter((s) => !s)}
+                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
+                  color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
+                }}
+              >
+                <ScatterChart size={14} />
+                Scatter View
+              </button>
+
+              <button
                 onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
                 className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
                 style={{
@@ -385,7 +482,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   border: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
-                Restart
+                Replay Intro
               </button>
             </div>
 
@@ -406,6 +503,99 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   />
                 </div>
               )}
+            </div>
+
+            {/* Scatter plot overlay */}
+            <AnimatePresence>
+              {showScatter && (
+                <motion.div
+                  key="scatter"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 z-40 flex items-center justify-center pointer-events-auto"
+                  style={{ backdropFilter: "blur(8px)", background: "rgba(4,10,7,0.7)" }}
+                  onClick={() => setShowScatter(false)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.92, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.92, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="rounded-3xl p-6"
+                    style={{
+                      background: "rgba(8,16,12,0.95)",
+                      border: "1px solid rgba(74,222,128,0.12)",
+                      width: "calc(100vw - 48px)",
+                      height: "calc(100vh - 48px)",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-2 px-2">
+                      <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}>
+                        Enrollment vs. Learning · all countries
+                      </span>
+                      <button
+                        onClick={() => setShowScatter(false)}
+                        className="text-xs opacity-40 hover:opacity-100 transition-opacity"
+                        style={{ color: "white", fontFamily: "Space Mono, monospace" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ScatterView countries={countries} activeRegion={activeRegion} />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Footer bar — sources + credit */}
+            <div
+              className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-2 pointer-events-auto group"
+              style={{
+                background: "linear-gradient(to top, rgba(4,10,7,0.7) 0%, transparent 100%)",
+                opacity: 0.25,
+                transition: "opacity 0.35s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.25")}
+            >
+              <div className="flex items-center gap-5">
+                <a
+                  href="https://sdgs.un.org/goals/goal4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  SDG 4.1 ↗
+                </a>
+                <a
+                  href="https://www.worldbank.org/en/publication/human-capital"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  World Bank HCI ↗
+                </a>
+                <a
+                  href="https://uis.unesco.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                  style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Space Mono, monospace" }}
+                >
+                  UNESCO UIS ↗
+                </a>
+              </div>
+              <span
+                className="text-[9px] uppercase tracking-widest"
+                style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}
+              >
+                The Learning Forest · Data as of 2024
+              </span>
             </div>
           </motion.div>
         )}

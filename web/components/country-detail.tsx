@@ -30,7 +30,7 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
             href={source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[9px] text-white/20 hover:text-white/40 transition-colors"
+            className="text-[9px] text-white/50 hover:text-white/80 transition-colors"
           >
             Source: {source.label}
           </a>
@@ -123,6 +123,30 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
             >
               {efficiencyLabel}
             </span>
+
+            {/* Classification scale legend */}
+            <div className="mt-4 flex flex-col gap-1 text-left">
+              {([
+                { tier: "THRIVING",   label: ">85% efficiency",  color: "#4ADE80", active: learningRatio > 0.85 },
+                { tier: "ADEQUATE",   label: "70–85%",           color: "#EAB308", active: learningRatio > 0.7 && learningRatio <= 0.85 },
+                { tier: "STRUGGLING", label: "50–70%",           color: "#F97316", active: learningRatio > 0.5 && learningRatio <= 0.7 },
+                { tier: "IN CRISIS",  label: "≤50%",             color: "#EF4444", active: learningRatio <= 0.5 },
+              ] as const).map(({ tier, label, color: c, active }) => (
+                <div
+                  key={tier}
+                  className="flex items-center gap-2 px-2 py-1 rounded-lg"
+                  style={{
+                    opacity: active ? 1 : 0.28,
+                    background: active ? `${c}10` : "transparent",
+                    transition: "opacity 0.2s",
+                  }}
+                >
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: c, boxShadow: active ? `0 0 4px ${c}` : "none" }} />
+                  <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: c, fontFamily: "Space Mono, monospace" }}>{tier}</span>
+                  <span className="text-[9px] ml-auto" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "Space Mono, monospace" }}>{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -147,11 +171,16 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               <span className="text-xl opacity-40 font-light">years</span>
             </div>
             <p className="text-lg leading-snug font-light text-white/70">
-              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning.
+              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
             </p>
             {lostYears > 0.5 && (
+<<<<<<< HEAD:client/src/components/CountryDetail.tsx
+              <p className="mt-4 text-sm text-white/60 italic">
+                “{lostYears.toFixed(1)} years of schooling are lost to low education quality.”
+=======
               <p className="mt-4 text-sm text-white/40 italic">
                 &ldquo;{lostYears.toFixed(1)} years of schooling are lost to low education quality.&rdquo;
+>>>>>>> origin:web/components/country-detail.tsx
               </p>
             )}
           </div>
