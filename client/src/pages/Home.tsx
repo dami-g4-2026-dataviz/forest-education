@@ -6,26 +6,47 @@ import Legend from "@/components/Legend";
 import { ChevronDown, TreePine, ArrowRight, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const NARRATIVE_CHAPTERS = [
+const NARRATIVE_CHAPTERS: {
+  code: string | null;
+  region: string | null;
+  regionColor: string | null;
+  headline: string;
+  subtext: string;
+}[] = [
   {
     code: "NER",
+    region: "Sub-Saharan Africa",
+    regionColor: "#EF4444",
     headline: "5 years in school. 2 years of learning.",
     subtext: "92% of 10-year-olds in Niger cannot read a simple sentence. The trunk is tall, but the canopy is bare.",
   },
   {
     code: "IND",
+    region: "South Asia",
+    regionColor: "#F97316",
     headline: "High enrollment hides a learning crisis.",
     subtext: "Since 1970, enrollment has doubled. But in South Asia, half of school time translates to zero learning.",
   },
   {
     code: "VNM",
+    region: "East Asia & Pacific",
+    regionColor: "#EAB308",
     headline: "The Efficiency Exception.",
     subtext: "In Vietnam, 12.9 years of school result in 10.2 years of real learning. A dense canopy shows what quality looks like.",
   },
   {
     code: "SGP",
+    region: "East Asia & Pacific",
+    regionColor: "#EAB308",
     headline: "A childhood apart.",
     subtext: "The gap between the best and worst education systems is 10 years of real learning — a full childhood lost.",
+  },
+  {
+    code: null,
+    region: null,
+    regionColor: null,
+    headline: "The 2030 deadline is close. The gap is not.",
+    subtext: "SDG 4 targets quality education for every child by 2030. At current rates, children in Sub-Saharan Africa will wait decades. The forest shows where we stand — and how far we have to grow.",
   },
 ];
 
