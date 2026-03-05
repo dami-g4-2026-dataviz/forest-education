@@ -1,0 +1,12 @@
+[project]
+name = "silent-forest-data"
+version = "1.0.0"
+description = "Data pipeline for The Silent Forest – SDG 4 education visualization"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "pydantic",
+]
+
+[project.scripts]
+pipeline = "src.pipeline:main"
