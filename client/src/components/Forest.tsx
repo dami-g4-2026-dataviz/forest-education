@@ -297,6 +297,7 @@ export default function Forest({
               onClick={onCountryClick}
               animationDelay={delay}
               highlightMetric={highlightMetric}
+              zoomScale={zoomParams.scale}
             />
           );
         })}

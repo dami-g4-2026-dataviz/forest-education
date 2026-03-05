@@ -15,6 +15,7 @@ interface TreeProps {
   onClick?: (country: CountryData) => void;
   animationDelay?: number;
   highlightMetric?: string | null;
+  zoomScale?: number;
 }
 
 function getTreeColor(country: CountryData, highlightMetric: string | null): string {
@@ -68,6 +69,7 @@ export default function Tree({
   onClick,
   animationDelay = 0,
   highlightMetric = null,
+  zoomScale = 1,
 }: TreeProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -86,8 +88,8 @@ export default function Tree({
     : (country.yearsInSchool / 16) * 110 * scale;
   const trunkW = Math.max(3, 5 * scale);
 
-  // Canopy base radius driven by LAYS
-  const canopyR = (country.lays / 16) * 60 * scale;
+  // Canopy base radius driven by LAYS — minimum ensures crisis trees are visible
+  const canopyR = Math.max(8 * scale, (country.lays / 16) * 60 * scale);
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
@@ -96,8 +98,9 @@ export default function Tree({
   const leanAngle = (sr(seed * 3) - 0.5) * 0.06; // ±3 degrees max
   const trunkTipX = Math.sin(leanAngle) * trunkH;
 
-  // Number of foliage petal clusters — more for healthier trees
-  const numPetals = Math.max(4, Math.round(4 + learningRatio * 5));
+  // Number of foliage petal clusters — more for healthier trees; doubled at high zoom
+  const basePetals = Math.max(4, Math.round(4 + learningRatio * 5));
+  const numPetals = zoomScale >= 3 ? basePetals * 2 : basePetals;
 
   // Canopy center (top of trunk, accounting for lean)
   const canopyCX = trunkTipX;
@@ -164,7 +167,7 @@ export default function Tree({
         );
       })}
 
-      {/* Bare spindly branches for crisis trees */}
+      {/* Bare spindly branches for crisis trees — heavier at high zoom */}
       {learningRatio < 0.4 && (
         <>
           {[[-1.1, -0.55], [1.0, -0.5], [-0.75, -0.75], [0.85, -0.72]].map(([dx, dy], i) => (
@@ -175,8 +178,8 @@ export default function Tree({
               x2={trunkTipX * 0.82 + dx * canopyR * 0.55}
               y2={-trunkH * 0.82 + dy * canopyR * 0.45}
               stroke={color}
-              strokeWidth={trunkW * 0.28}
-              opacity={0.2 + learningRatio * 0.2}
+              strokeWidth={trunkW * (zoomScale >= 3 ? 0.55 : 0.28)}
+              opacity={zoomScale >= 3 ? 0.55 + learningRatio * 0.2 : 0.2 + learningRatio * 0.2}
               strokeLinecap="round"
             />
           ))}
