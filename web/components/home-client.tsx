@@ -65,12 +65,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
     };
   }, [introStep, advanceIntro, isNarrative, isFreeExplore]);
 
-  // Camera reveal: show full forest for 1.4s before zooming to first chapter
   useEffect(() => {
-    if (introStep === 2) {
-      const timer = setTimeout(() => setForestRevealDone(true), 1400);
-      return () => clearTimeout(timer);
-    }
+    if (introStep === 2) setForestRevealDone(true);
   }, [introStep]);
 
   const handleCountryClick = useCallback((country: CountryData) => {
@@ -209,16 +205,22 @@ export default function HomeClient({ countries }: HomeClientProps) {
 
               <div>
                 {/* Big stat callout */}
-                <div className="mb-5">
+                <div className="mb-3">
                   <div
                     className="font-black leading-none mb-1"
                     style={{ fontSize: 52, color: "var(--tree-healthy)", fontFamily: "Space Mono, monospace" }}
                   >
-                    250M
+                    1 in 2
                   </div>
                   <div className="text-sm font-light" style={{ color: "rgba(255,255,255,0.65)" }}>
-                    children in school, not learning
+                    children can&rsquo;t read a simple text by age 10
                   </div>
+                </div>
+                <div
+                  className="text-xs mb-4 pb-3"
+                  style={{ color: "rgba(255,255,255,0.3)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  That&rsquo;s 250M children in school — but not learning.
                 </div>
                 <p
                   className="text-sm leading-relaxed mb-4"
