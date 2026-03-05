@@ -147,7 +147,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               <span className="text-xl opacity-40 font-light">years</span>
             </div>
             <p className="text-lg leading-snug font-light text-white/70">
-              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning.
+              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
             </p>
             {lostYears > 0.5 && (
               <p className="mt-4 text-sm text-white/60 italic">

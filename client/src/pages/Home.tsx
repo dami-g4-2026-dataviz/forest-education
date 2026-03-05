@@ -149,9 +149,9 @@ export default function Home() {
                   fontFamily: "Playfair Display, serif",
                 }}
               >
-                The Silent
+                The Learning
                 <br />
-                <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
+                <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Crisis</em>
               </motion.h1>
             </div>
 
@@ -211,7 +211,7 @@ export default function Home() {
                   style={{ color: "rgba(255,255,255,0.75)", fontWeight: 300 }}
                 >
                   Every tree is a country. Its trunk is how long children stay in school.
-                  Its canopy is how much they actually learn.
+                  Its canopy is how much they actually learn, measured by standardized test results.
                 </p>
                 <p
                   className="text-sm leading-relaxed"
@@ -326,7 +326,7 @@ export default function Home() {
                   "The world has solved the problem of enrollment, but not the problem of learning."
                 </h2>
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]" style={{ fontFamily: "Space Mono, monospace" }}>
-                  The Silent Forest · SDG 4
+                  The Learning Crisis · SDG 4
                 </p>
               </div>
             </div>
@@ -348,7 +348,7 @@ export default function Home() {
                   className="text-sm font-bold"
                   style={{ color: "var(--text-primary)", fontFamily: "Playfair Display, serif" }}
                 >
-                  The Silent Forest
+                  The Learning Crisis
                 </span>
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
