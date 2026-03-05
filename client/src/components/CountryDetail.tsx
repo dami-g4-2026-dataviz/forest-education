@@ -27,7 +27,7 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
             href={source.url} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-[9px] text-white/20 hover:text-white/40 transition-colors"
+            className="text-[9px] text-white/50 hover:text-white/80 transition-colors"
           >
             Source: {source.label}
           </a>
@@ -150,7 +150,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning.
             </p>
             {lostYears > 0.5 && (
-              <p className="mt-4 text-sm text-white/40 italic">
+              <p className="mt-4 text-sm text-white/60 italic">
                 “{lostYears.toFixed(1)} years of schooling are lost to low education quality.”
               </p>
             )}
