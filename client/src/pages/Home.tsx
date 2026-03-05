@@ -99,7 +99,7 @@ export default function Home() {
           highlightMetric={highlightMetric}
           activeRegion={activeRegion}
           onCountryClick={isFreeExplore ? handleCountryClick : () => {}}
-          chapterId={narrativeChapter}
+          chapterId={isFreeExplore ? -1 : narrativeChapter}
           focusedCountryCode={currentChapter?.code}
         />
       </div>
