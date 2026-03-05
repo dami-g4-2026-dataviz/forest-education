@@ -56,6 +56,8 @@ export default function Home() {
   const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
   const [highlightMetric, setHighlightMetric] = useState<string | null>(null);
+  const [forestRevealDone, setForestRevealDone] = useState(false);
+  const [showScatter, setShowScatter] = useState(false);
 
   const isNarrative = introStep === 2 && narrativeChapter < NARRATIVE_CHAPTERS.length;
   const isFreeExplore = introStep === 2 && narrativeChapter >= NARRATIVE_CHAPTERS.length;
@@ -63,6 +65,7 @@ export default function Home() {
   const advanceIntro = useCallback(() => {
     if (introStep < 2) {
       setIntroStep((s) => (s + 1) as 0 | 1 | 2);
+      if (introStep === 1) setForestRevealDone(false);
     } else if (narrativeChapter < NARRATIVE_CHAPTERS.length) {
       setNarrativeChapter((c) => c + 1);
     }
@@ -99,6 +102,14 @@ export default function Home() {
     };
   }, [introStep, advanceIntro, isNarrative, isFreeExplore]);
 
+  // Camera reveal: show full forest for 1.4s before zooming to first chapter
+  useEffect(() => {
+    if (introStep === 2) {
+      const timer = setTimeout(() => setForestRevealDone(true), 1400);
+      return () => clearTimeout(timer);
+    }
+  }, [introStep]);
+
   const handleCountryClick = useCallback((country: CountryData) => {
     setSelectedCountry(country);
   }, []);
@@ -121,7 +132,7 @@ export default function Home() {
           activeRegion={activeRegion}
           onCountryClick={isFreeExplore ? handleCountryClick : () => {}}
           chapterId={isFreeExplore ? -1 : narrativeChapter}
-          focusedCountryCode={currentChapter?.code}
+          focusedCountryCode={forestRevealDone ? (currentChapter?.code ?? undefined) : undefined}
         />
       </div>
 
@@ -373,13 +384,15 @@ export default function Home() {
                   <ArrowRight size={16} />
                 </motion.button>
 
-                <button
-                  onClick={skipToExplore}
-                  className="text-xs opacity-30 hover:opacity-100 transition-opacity"
-                  style={{ color: "white", fontFamily: "Space Mono, monospace" }}
-                >
-                  Skip to explore
-                </button>
+                {narrativeChapter >= 1 && (
+                  <button
+                    onClick={skipToExplore}
+                    className="text-xs opacity-30 hover:opacity-100 transition-opacity"
+                    style={{ color: "white", fontFamily: "Space Mono, monospace" }}
+                  >
+                    Skip to explore
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
