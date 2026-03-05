@@ -194,9 +194,9 @@ export default function Home() {
                 className="mt-5 text-sm"
                 style={{ color: "rgba(255,255,255,0.45)", fontFamily: "Space Mono, monospace", lineHeight: 1.8 }}
               >
-                250 million children are enrolled.
+                53% of 10-year-olds in low- and middle-income countries cannot read and understand a simple story.
                 <br />
-                Millions leave without learning to read.
+                This is the story enrollment rates don't tell.
               </motion.p>
             </div>
 
