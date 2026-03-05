@@ -231,17 +231,40 @@ export default function Home() {
                   </div>
                 </div>
                 <p
-                  className="text-sm leading-relaxed mb-3"
+                  className="text-sm leading-relaxed mb-4"
                   style={{ color: "rgba(255,255,255,0.65)", fontWeight: 300 }}
                 >
-                  Every tree is a country. Its trunk is how long children stay in school.
-                  Its canopy is how much they actually learn, measured by standardized test results.
+                  Every tree is a country. Two dimensions. One picture.
                 </p>
+
+                {/* Tree anatomy key */}
+                <div className="flex flex-col gap-2 mb-4 text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center">
+                      <div className="w-1.5 h-5 rounded-full" style={{ background: "rgba(255,255,255,0.3)" }} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.8)" }}>Trunk height</span>
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}> — years enrolled in school</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="mt-1 w-5 h-5 rounded-full flex-shrink-0"
+                      style={{ background: "rgba(74,222,128,0.5)", boxShadow: "0 0 8px rgba(74,222,128,0.3)" }}
+                    />
+                    <div>
+                      <span className="text-xs font-semibold" style={{ color: "var(--tree-healthy)" }}>Canopy size = LAYS</span>
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}> — Learning-Adjusted Years of Schooling. A World Bank metric that adjusts school years by actual test-score quality. A country where kids learn half of what they're taught has half the canopy.</span>
+                    </div>
+                  </div>
+                </div>
+
                 <p
                   className="text-[10px]"
                   style={{ color: "rgba(255,255,255,0.25)", fontFamily: "Space Mono, monospace" }}
                 >
-                  Source: UNESCO Institute for Statistics, 2023
+                  Sources: UNESCO UIS 2023 · World Bank HCI 2024
                 </p>
               </div>
 
@@ -300,9 +323,20 @@ export default function Home() {
               >
                 {currentChapter.headline}
               </h2>
-              <p className="text-lg text-white/60 mb-8 font-light leading-relaxed">
+              <p className="text-lg text-white/60 mb-3 font-light leading-relaxed">
                 {currentChapter.subtext}
               </p>
+
+              <div
+                className="text-[10px] mb-8 pt-2"
+                style={{
+                  color: "rgba(255,255,255,0.25)",
+                  fontFamily: "Space Mono, monospace",
+                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                ↳ "Years of learning" = Learning-Adjusted Years of Schooling (LAYS) · World Bank HCI 2024
+              </div>
 
               <div className="flex items-center justify-between">
                 <motion.button
