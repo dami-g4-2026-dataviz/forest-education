@@ -167,7 +167,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
             <a href="https://www.worldbank.org/en/publication/human-capital" target="_blank" rel="noopener noreferrer" className="hover:text-white/80 transition-colors">
               Source: World Bank HCI 2024
             </a>
-            <span>Ref: SDG 4.1.1</span>
+            <span>Ref: SDG 4</span>
           </footer>
         </div>
       </div>

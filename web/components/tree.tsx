@@ -92,9 +92,14 @@ export default function Tree({
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
-  const glowSize = isActive ? 18 : highlighted ? 12 : learningRatio > 0.75 ? 7 : 2;
+
+  const leanAngle = (sr(seed * 3) - 0.5) * 0.06;
+  const trunkTipX = Math.sin(leanAngle) * trunkH;
 
   const numClusters = Math.max(1, Math.round((2 + sr(seed) * 2) + learningRatio * 6));
+
+  const canopyCX = trunkTipX;
+  const canopyCY = -trunkH;
 
   if (!mounted) return null;
 
@@ -116,10 +121,10 @@ export default function Tree({
       <ellipse
         cx={0}
         cy={0}
-        rx={trunkW * 1.5}
-        ry={trunkW * 0.45}
+        rx={trunkW * 1.8}
+        ry={trunkW * 0.5}
         fill={color}
-        opacity={0.18 + learningRatio * 0.12}
+        opacity={0.15 + learningRatio * 0.1}
       />
 
       {learningRatio > 0.55 && (
@@ -134,11 +139,11 @@ export default function Tree({
       )}
 
       <polygon
-        points={`${-trunkW / 2},0 ${trunkW / 2},0 ${trunkW * 0.28},${-trunkH} ${-trunkW * 0.28},${-trunkH}`}
+        points={`${-trunkW / 2},0 ${trunkW / 2},0 ${trunkTipX + trunkW * 0.22},${-trunkH} ${trunkTipX - trunkW * 0.22},${-trunkH}`}
         fill={color}
-        opacity={0.65 + learningRatio * 0.35}
+        opacity={0.55 + learningRatio * 0.45}
         style={{
-          filter: isActive ? `drop-shadow(0 0 ${glowSize}px ${color})` : "none",
+          filter: isActive ? `drop-shadow(0 0 6px ${color})` : "none",
           transition: "filter 0.2s ease",
         }}
       />
@@ -146,15 +151,16 @@ export default function Tree({
       {Array.from({ length: Math.round(1 + learningRatio * 2) }).map((_, i) => {
         const side = i % 2 === 0 ? 1 : -1;
         const heightFrac = 0.45 + i * 0.15;
+        const branchBaseX = trunkTipX * heightFrac;
         const branchY = -trunkH * heightFrac;
         const branchLen = canopyR * (0.28 + learningRatio * 0.18);
         const angle = side * (0.55 + sr(seed + i * 7) * 0.25);
         return (
           <line
             key={`branch-${i}`}
-            x1={0}
+            x1={branchBaseX}
             y1={branchY}
-            x2={Math.sin(angle) * branchLen}
+            x2={branchBaseX + Math.sin(angle) * branchLen}
             y2={branchY - Math.cos(angle * 0.6) * branchLen * 0.5}
             stroke={color}
             strokeWidth={trunkW * (0.3 - i * 0.06)}
@@ -166,17 +172,12 @@ export default function Tree({
 
       {learningRatio < 0.4 && (
         <>
-          {[
-            [-1.1, -0.55],
-            [1.0, -0.5],
-            [-0.75, -0.75],
-            [0.85, -0.72],
-          ].map(([dx, dy], i) => (
+          {[[-1.1, -0.55], [1.0, -0.5], [-0.75, -0.75], [0.85, -0.72]].map(([dx, dy], i) => (
             <line
               key={i}
-              x1={0}
+              x1={trunkTipX * 0.82}
               y1={-trunkH * 0.82}
-              x2={dx * canopyR * 0.55}
+              x2={trunkTipX * 0.82 + dx * canopyR * 0.55}
               y2={-trunkH * 0.82 + dy * canopyR * 0.45}
               stroke={color}
               strokeWidth={trunkW * 0.28}
@@ -189,36 +190,80 @@ export default function Tree({
 
       <g
         style={{
-          filter: `drop-shadow(0 0 ${isActive ? 8 : 4}px ${color}${isActive ? "80" : "40"})`,
           transition: "filter 0.3s ease",
         }}
       >
         <circle
-          cx={0}
-          cy={-trunkH - canopyR * 0.2}
-          r={canopyR * 0.75}
+          cx={canopyCX}
+          cy={canopyCY - canopyR * 0.1}
+          r={canopyR * 1.35}
           fill={color}
-          opacity={0.2 + learningRatio * 0.4}
+          opacity={0.04 + learningRatio * 0.06}
+          style={{ filter: `blur(${canopyR * 0.4}px)` }}
         />
 
         {Array.from({ length: numClusters }).map((_, i) => {
-          const angle = sr(seed + i * 13) * Math.PI * 2;
-          const dist = canopyR * (0.3 + sr(seed + i * 19) * 0.3);
-          const r = canopyR * (0.3 + sr(seed + i * 23) * 0.2);
-          const cx = Math.cos(angle) * dist;
-          const cy = -trunkH - canopyR * 0.3 + Math.sin(angle) * dist * 0.7;
+          const baseAngle = (i / numClusters) * Math.PI * 2;
+          const angleJitter = (sr(seed + i * 17) - 0.5) * 0.4;
+          const angle = baseAngle + angleJitter;
+          const distFrac = 0.3 + sr(seed + i * 11) * 0.35;
+          const dist = canopyR * distFrac;
+          const petalR = canopyR * (0.38 + sr(seed + i * 23) * 0.22 - distFrac * 0.15);
+          const px = canopyCX + Math.cos(angle) * dist;
+          const py = canopyCY - canopyR * 0.15 + Math.sin(angle) * dist * 0.8;
+          const petalOpacity = (0.18 + learningRatio * 0.28) * (1 - i * 0.03);
 
           return (
             <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
+              key={`petal-${i}`}
+              cx={px}
+              cy={py}
+              r={Math.max(2, petalR)}
               fill={color}
-              opacity={(0.15 + learningRatio * 0.3) * (1 - i * 0.05)}
+              opacity={petalOpacity}
             />
           );
         })}
+
+        {/* Layer 3: Dense inner core — the "heart" of the canopy */}
+        <circle
+          cx={canopyCX}
+          cy={canopyCY - canopyR * 0.05}
+          r={canopyR * 0.52}
+          fill={color}
+          opacity={0.3 + learningRatio * 0.35}
+        />
+
+        {/* Layer 4: Bright focal point — like poppyfield's stamen center */}
+        {learningRatio > 0.25 && (
+          <circle
+            cx={canopyCX}
+            cy={canopyCY - canopyR * 0.08}
+            r={canopyR * 0.18}
+            fill={color}
+            opacity={0.6 + learningRatio * 0.4}
+            style={{
+              filter: isActive
+                ? `drop-shadow(0 0 ${12}px ${color}) drop-shadow(0 0 ${24}px ${color}80)`
+                : `drop-shadow(0 0 ${4 + learningRatio * 8}px ${color}90)`,
+              transition: "filter 0.3s ease",
+            }}
+          />
+        )}
+
+        {/* Hover/highlight glow ring around canopy */}
+        {isActive && (
+          <circle
+            cx={canopyCX}
+            cy={canopyCY - canopyR * 0.1}
+            r={canopyR * 1.1}
+            fill="none"
+            stroke={color}
+            strokeWidth={1}
+            opacity={0.25}
+            style={{ filter: `blur(2px)` }}
+          />
+        )}
       </g>
 
       {(isActive || showLabel) && (
