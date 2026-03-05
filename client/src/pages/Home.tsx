@@ -153,6 +153,18 @@ export default function Home() {
                 <br />
                 <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
               </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 1.0 }}
+                className="mt-5 text-sm"
+                style={{ color: "rgba(255,255,255,0.45)", fontFamily: "Space Mono, monospace", lineHeight: 1.8 }}
+              >
+                250 million children are enrolled.
+                <br />
+                Millions leave without learning to read.
+              </motion.p>
             </div>
 
             {/* Scroll indicator */}
