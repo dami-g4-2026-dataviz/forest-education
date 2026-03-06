@@ -143,17 +143,6 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
               </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2, duration: 1.0 }}
-                className="mt-5 text-sm"
-                style={{ color: "rgba(255,255,255,0.45)", fontFamily: "Space Mono, monospace", lineHeight: 1.8 }}
-              >
-                53% of 10-year-olds in low- and middle-income countries cannot read and understand a simple story.
-                <br />
-                This is the story enrollment rates don't tell.
-              </motion.p>
             </div>
 
             <motion.button
