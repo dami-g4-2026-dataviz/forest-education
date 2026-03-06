@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { ChevronDown, TreePine, ArrowRight, Settings2, ScatterChart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CountryData, Region } from "@/lib/types";
-import { REGION_COLORS, NARRATIVE_CHAPTERS } from "@/lib/constants";
+import { NARRATIVE_CHAPTERS } from "@/lib/constants";
 import Forest from "./forest";
 import CountryDetail from "./country-detail";
 import Legend from "./legend";
@@ -404,24 +404,6 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 flex-1 flex-wrap">
-                {(Object.entries(REGION_COLORS) as [Region, string][]).map(([region, color]) => {
-                  const isActive = activeRegion === region;
-                  return (
-                    <button
-                      key={region}
-                      onClick={() => handleRegionClick(region)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full transition-all"
-                      style={{
-                        background: isActive ? `${color}25` : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${isActive ? color : "rgba(255,255,255,0.08)"}`,
-                        color: isActive ? color : "rgba(255,255,255,0.45)",
-                        fontFamily: "Space Mono, monospace",
-                      }}
-                    >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: color, opacity: isActive ? 1 : 0.5 }}
                       />
                       {region}
                     </button>
