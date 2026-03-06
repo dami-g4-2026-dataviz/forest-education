@@ -209,15 +209,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   className="text-xs mb-4 pb-3"
                   style={{ color: "rgba(255,255,255,0.3)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
                 >
-                  That&rsquo;s 250M children in school — but not learning.
+                  That&rsquo;s 250M children enrolled, but not learning.
                 </div>
-                <p
-                  className="text-sm leading-relaxed mb-4"
-                  style={{ color: "rgba(255,255,255,0.65)", fontWeight: 300 }}
-                >
-                  Every tree is a country. Two dimensions. One picture.
-                </p>
-
                 {/* Example trees: Niger vs Finland */}
                 <div className="flex justify-around items-end mb-2 gap-4">
                   {/* Niger */}

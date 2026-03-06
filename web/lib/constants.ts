@@ -23,7 +23,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: "#EF4444",
     headline: "5 years in school. 2 years of learning.",
     subtext:
-      "92% of 10-year-olds in Niger cannot read a simple sentence. The trunk is tall, but the canopy is bare.",
+      "92% of 10-year-olds in Niger cannot read a simple sentence.",
   },
   {
     code: "IND",
@@ -55,7 +55,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: null,
     headline: "The 2030 deadline is close. The gap is not.",
     subtext:
-      "SDG 4 targets quality education for every child by 2030. At current rates, children in Sub-Saharan Africa will wait decades. The forest shows where we stand — and how far we have to grow.",
+      "SDG 4 targets quality education for every child by 2030. At current rates, children in Sub-Saharan Africa will wait decades.",
   },
 ];
 
