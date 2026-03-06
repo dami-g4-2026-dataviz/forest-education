@@ -404,52 +404,47 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 </span>
               </div>
 
-                      />
-                      {region}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={() => setShowScatter((s) => !s)}
+                  className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
+                    color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
+                  }}
+                >
+                  <ScatterChart size={14} />
+                  Scatter View
+                </button>
+
+                <button
+                  onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
+                  className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    background: highlightMetric ? "rgba(239, 68, 68, 0.15)" : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${highlightMetric ? "#EF4444" : "rgba(255,255,255,0.08)"}`,
+                    color: highlightMetric ? "#EF4444" : "rgba(255,255,255,0.45)",
+                  }}
+                >
+                  <Settings2 size={14} />
+                  Highlight Poverty
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIntroStep(1);
+                    setNarrativeChapter(0);
+                  }}
+                  className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    color: "rgba(255,255,255,0.35)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  Replay Intro
+                </button>
               </div>
-
-              <button
-                onClick={() => setShowScatter((s) => !s)}
-                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
-                  color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
-                }}
-              >
-                <ScatterChart size={14} />
-                Scatter View
-              </button>
-
-              <button
-                onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
-                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  background: highlightMetric ? "rgba(239, 68, 68, 0.15)" : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${highlightMetric ? "#EF4444" : "rgba(255,255,255,0.08)"}`,
-                  color: highlightMetric ? "#EF4444" : "rgba(255,255,255,0.45)",
-                }}
-              >
-                <Settings2 size={14} />
-                Highlight Poverty
-              </button>
-
-              <button
-                onClick={() => {
-                  setIntroStep(1);
-                  setNarrativeChapter(0);
-                }}
-                className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  color: "rgba(255,255,255,0.35)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                Replay Intro
-              </button>
             </div>
 
             <div className="absolute top-20 left-6 z-30 pointer-events-auto">
