@@ -384,7 +384,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 style={{ background: "rgba(8, 16, 12, 0.6)" }}
               >
                 <h2 className="text-sm md:text-base font-medium text-white/90 mb-1" style={{ fontFamily: "Playfair Display, serif" }}>
-                  &ldquo;The world has solved the problem of enrollment, but not the problem of learning.&rdquo;
+                  The world has largely solved enrollment. It hasn&rsquo;t solved learning.
                 </h2>
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]" style={{ fontFamily: "Space Mono, monospace" }}>
                   The Learning Forest · SDG 4
