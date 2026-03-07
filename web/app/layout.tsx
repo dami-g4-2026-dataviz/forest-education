@@ -23,9 +23,9 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Forest — Education Data Visualization",
+  title: "The Forest — The forest is growing, but learning still trails behind",
   description:
-    "A data story visualizing global education quality. Every tree is a country — its trunk is years in school, its canopy is years learned.",
+    "A data story about the gap between rising school enrollment and actual learning. Every tree is a country — its trunk is years in school, its canopy is years learned.",
 };
 
 export default function RootLayout({

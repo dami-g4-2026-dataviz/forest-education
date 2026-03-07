@@ -24,7 +24,7 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
   return (
     <div className="flex justify-between items-baseline py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="flex flex-col gap-0.5">
-        <span className="text-[11px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</span>
+        <span className="text-[10px] uppercase tracking-wider md:text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</span>
         {source && (
           <a
             href={source.url}
@@ -37,7 +37,7 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
         )}
       </div>
       <span
-        className="font-bold text-sm"
+        className="font-bold text-xs md:text-sm"
         style={{
           color: color || "var(--text-primary)",
           fontFamily: "Space Mono, monospace",
@@ -68,35 +68,58 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center p-4"
+      className="fixed inset-0 z-40 flex items-end justify-center md:items-center p-0 md:p-4"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl"
+        className="relative flex flex-col md:flex-row rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 720,
-          maxHeight: "90vh",
+          maxHeight: "92vh",
           background: "rgba(10, 15, 13, 0.98)",
           border: `1px solid ${color}40`,
         }}
       >
+        {/* Drag handle for mobile */}
+        <div className="flex justify-center pt-2 pb-1 md:hidden">
+          <div className="w-10 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }} />
+        </div>
+
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 transition-colors"
+          className="absolute top-3 right-3 z-50 p-1.5 rounded-full bg-black/20 hover:bg-black/40 transition-colors md:top-4 md:right-4 md:p-2"
           style={{ color: "rgba(255,255,255,0.5)" }}
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
         <div
-          className="w-full md:w-[42%] flex flex-col items-center justify-center p-8 bg-gradient-to-b from-transparent to-black/20"
+          className="w-full md:w-[42%] flex flex-col items-center justify-center px-4 py-4 md:p-8 bg-gradient-to-b from-transparent to-black/20"
           style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="relative">
-            <svg width={240} height={280} className="overflow-visible">
+            <svg
+              width={160}
+              height={190}
+              className="overflow-visible md:hidden"
+            >
+              <Tree
+                country={country}
+                x={80}
+                y={175}
+                scale={1.5}
+                maxTrunkH={110}
+                showLabel={true}
+              />
+            </svg>
+            <svg
+              width={240}
+              height={280}
+              className="overflow-visible hidden md:block"
+            >
               <Tree
                 country={country}
                 x={120}
@@ -107,13 +130,13 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               />
             </svg>
             <div
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 md:w-32 bg-gradient-to-r from-transparent via-white/10 to-transparent"
               style={{ filter: "blur(2px)" }}
             />
           </div>
-          <div className="mt-8 text-center">
+          <div className="mt-4 text-center md:mt-8">
             <span
-              className="text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold"
+              className="text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-widest font-bold md:text-[10px] md:px-3 md:py-1"
               style={{
                 background: `${efficiencyColor}15`,
                 color: efficiencyColor,
@@ -124,8 +147,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               {efficiencyLabel}
             </span>
 
-            {/* Classification scale legend */}
-            <div className="mt-4 flex flex-col gap-1 text-left">
+            <div className="mt-3 flex flex-col gap-0.5 text-left md:mt-4 md:gap-1">
               {([
                 { tier: "THRIVING",   label: ">85% efficiency",  color: "#4ADE80", active: learningRatio > 0.85 },
                 { tier: "ADEQUATE",   label: "70–85%",           color: "#EAB308", active: learningRatio > 0.7 && learningRatio <= 0.85 },
@@ -134,7 +156,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
               ] as const).map(({ tier, label, color: c, active }) => (
                 <div
                   key={tier}
-                  className="flex items-center gap-2 px-2 py-1 rounded-lg"
+                  className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg md:gap-2 md:px-2 md:py-1"
                   style={{
                     opacity: active ? 1 : 0.28,
                     background: active ? `${c}10` : "transparent",
@@ -142,40 +164,40 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
                   }}
                 >
                   <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: c, boxShadow: active ? `0 0 4px ${c}` : "none" }} />
-                  <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: c, fontFamily: "Space Mono, monospace" }}>{tier}</span>
-                  <span className="text-[9px] ml-auto" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "Space Mono, monospace" }}>{label}</span>
+                  <span className="text-[8px] font-bold tracking-widest uppercase md:text-[9px]" style={{ color: c, fontFamily: "Space Mono, monospace" }}>{tier}</span>
+                  <span className="text-[8px] ml-auto md:text-[9px]" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "Space Mono, monospace" }}>{label}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col p-10 overflow-y-auto">
-          <header className="mb-8">
-            <div className="text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color, fontFamily: "Space Mono, monospace" }}>
+        <div className="flex-1 flex flex-col px-5 py-4 overflow-y-auto md:p-10">
+          <header className="mb-4 md:mb-8">
+            <div className="text-[9px] uppercase tracking-[0.2em] mb-1 md:text-[10px] md:mb-2" style={{ color, fontFamily: "Space Mono, monospace" }}>
               {country.region}
             </div>
             <h2
-              className="text-4xl font-bold leading-tight"
+              className="text-2xl font-bold leading-tight md:text-4xl"
               style={{ color: "var(--text-primary)", fontFamily: "Playfair Display, serif" }}
             >
               {country.name}
             </h2>
           </header>
 
-          <div className="mb-10">
+          <div className="mb-6 md:mb-10">
             <div className="flex items-baseline gap-2 mb-1">
-              <span className="text-5xl font-black" style={{ color: "var(--text-primary)", fontFamily: "Space Mono, monospace" }}>
+              <span className="text-3xl font-black md:text-5xl" style={{ color: "var(--text-primary)", fontFamily: "Space Mono, monospace" }}>
                 {country.lays}
               </span>
-              <span className="text-xl opacity-40 font-light">years</span>
+              <span className="text-base opacity-40 font-light md:text-xl">years</span>
             </div>
-            <p className="text-lg leading-snug font-light text-white/70">
+            <p className="text-sm leading-snug font-light text-white/70 md:text-lg">
               of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
             </p>
             {lostYears > 0.5 && (
-              <p className="mt-4 text-sm text-white/60 italic">
-                “{lostYears.toFixed(1)} years of schooling are lost to low education quality.”
+              <p className="mt-3 text-xs text-white/60 italic md:mt-4 md:text-sm">
+                &ldquo;{lostYears.toFixed(1)} years of schooling are lost to low education quality.&rdquo;
               </p>
             )}
           </div>
@@ -187,7 +209,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
             <StatRow label="Education Spending" value={country.spendingPctGDP} unit="% GDP" sourceKey="spendingPctGDP" />
           </div>
 
-          <footer className="mt-8 pt-6 flex justify-between items-center opacity-40 text-[9px] uppercase tracking-tighter" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <footer className="mt-5 pt-4 flex justify-between items-center opacity-40 text-[8px] uppercase tracking-tighter md:mt-8 md:pt-6 md:text-[9px]" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <a href="https://www.worldbank.org/en/publication/human-capital" target="_blank" rel="noopener noreferrer" className="hover:text-white/80 transition-colors">
               Source: World Bank HCI 2024
             </a>

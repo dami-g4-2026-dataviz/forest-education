@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search, X, ZoomIn, ZoomOut, Locate } from "lucide-react";
 import type { Region, CountryData } from "@/lib/types";
 import { REGION_COLORS } from "@/lib/constants";
 
@@ -34,6 +35,15 @@ interface GeoJSON {
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 600;
 const MAP_OFFSET_Y = 80; // Shift map down to show Scandinavia
+const MERCATOR_MAX_LAT = 85.05112878;
+const MAP_BACKGROUND_PADDING_X = 420;
+const MAP_BACKGROUND_PADDING_Y = 360;
+const MAP_BOUNDS = {
+  minX: -MAP_BACKGROUND_PADDING_X,
+  maxX: MAP_WIDTH + MAP_BACKGROUND_PADDING_X,
+  minY: -MAP_BACKGROUND_PADDING_Y,
+  maxY: MAP_HEIGHT + MAP_BACKGROUND_PADDING_Y,
+};
 
 // Mercator projection functions
 function mercatorX(lon: number): number {
@@ -41,7 +51,10 @@ function mercatorX(lon: number): number {
 }
 
 function mercatorY(lat: number): number {
-  const latRad = (lat * Math.PI) / 180;
+  // Clamp near the poles to avoid Mercator singularities that stretch
+  // Antarctica and the top of Greenland into long wedges.
+  const clampedLat = Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, lat));
+  const latRad = (clampedLat * Math.PI) / 180;
   const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
   const y = MAP_HEIGHT / 2 - (MAP_WIDTH * mercN) / (2 * Math.PI) + MAP_OFFSET_Y;
   return y;
@@ -72,6 +85,17 @@ function featureToPath(geometry: GeoFeature["geometry"]): string {
   return "";
 }
 
+function clampViewBoxToBounds(viewBox: { x: number; y: number; w: number; h: number }) {
+  const maxX = MAP_BOUNDS.maxX - viewBox.w;
+  const maxY = MAP_BOUNDS.maxY - viewBox.h;
+
+  return {
+    ...viewBox,
+    x: Math.min(Math.max(viewBox.x, MAP_BOUNDS.minX), maxX),
+    y: Math.min(Math.max(viewBox.y, MAP_BOUNDS.minY), maxY),
+  };
+}
+
 const GEOJSON_URL =
   "https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_60M_2024_4326.geojson";
 
@@ -96,12 +120,138 @@ export default function WorldMap({
   const [geoData, setGeoData] = useState<GeoJSON | null>(null);
   const [loading, setLoading] = useState(true);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState<CountryData[]>([]);
+  
+  // Pan and zoom state
+  const [viewBox, setViewBox] = useState({ x: -50, y: 40, w: MAP_WIDTH + 100, h: MAP_HEIGHT - 60 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const defaultViewBox = { x: -50, y: 40, w: MAP_WIDTH + 100, h: MAP_HEIGHT - 60 };
 
   const countryLookup = useMemo(() => {
     const map = new Map<string, CountryData>();
     countries.forEach((c) => map.set(c.code, c));
     return map;
   }, [countries]);
+
+  // Search functionality
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const query = searchQuery.toLowerCase();
+    const results = countries.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        c.code.toLowerCase().includes(query) ||
+        c.region.toLowerCase().includes(query)
+    ).slice(0, 8);
+    setSearchResults(results);
+  }, [searchQuery, countries]);
+
+  const handleSearchSelect = useCallback((country: CountryData) => {
+    setSearchQuery("");
+    setShowSearch(false);
+    setSearchResults([]);
+    setHoveredCountry(country.code);
+    onCountryClick?.(country);
+  }, [onCountryClick]);
+
+  // Zoom functions
+  const handleZoom = useCallback((factor: number) => {
+    setViewBox((prev) => {
+      const newW = prev.w * factor;
+      const newH = prev.h * factor;
+      const minW = 200;
+      const maxW = (MAP_WIDTH + 100) * 2;
+      if (newW < minW || newW > maxW) return prev;
+      const cx = prev.x + prev.w / 2;
+      const cy = prev.y + prev.h / 2;
+      return clampViewBoxToBounds({
+        x: cx - newW / 2,
+        y: cy - newH / 2,
+        w: newW,
+        h: newH,
+      });
+    });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setViewBox(defaultViewBox);
+  }, []);
+
+  // Pan handlers
+  const handlePanStart = useCallback((clientX: number, clientY: number) => {
+    setIsPanning(true);
+    setPanStart({ x: clientX, y: clientY });
+  }, []);
+
+  const handlePanMove = useCallback((clientX: number, clientY: number) => {
+    if (!isPanning || !svgRef.current) return;
+    const svg = svgRef.current;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = viewBox.w / rect.width;
+    const scaleY = viewBox.h / rect.height;
+    const dx = (panStart.x - clientX) * scaleX;
+    const dy = (panStart.y - clientY) * scaleY;
+    setViewBox((prev) =>
+      clampViewBoxToBounds({
+        ...prev,
+        x: prev.x + dx,
+        y: prev.y + dy,
+      })
+    );
+    setPanStart({ x: clientX, y: clientY });
+  }, [isPanning, panStart, viewBox.w, viewBox.h]);
+
+  const handlePanEnd = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  // Mouse events for pan
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) {
+      handlePanStart(e.clientX, e.clientY);
+    }
+  }, [handlePanStart]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    handlePanMove(e.clientX, e.clientY);
+  }, [handlePanMove]);
+
+  const handleMouseUp = useCallback(() => {
+    handlePanEnd();
+  }, [handlePanEnd]);
+
+  // Touch events for mobile pan
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      handlePanStart(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [handlePanStart]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      handlePanMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [handlePanMove]);
+
+  const handleTouchEnd = useCallback(() => {
+    handlePanEnd();
+  }, [handlePanEnd]);
+
+  // Wheel zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1.1 : 0.9;
+    handleZoom(factor);
+  }, [handleZoom]);
 
   useEffect(() => {
     fetch(GEOJSON_URL)
@@ -177,11 +327,26 @@ export default function WorldMap({
   }
 
   return (
-    <div className="w-full h-full relative overflow-hidden" style={{ background: "#0a1612" }}>
+    <div 
+      ref={containerRef}
+      data-tour="map-pan"
+      className="w-full h-full relative overflow-hidden touch-none" 
+      style={{ background: "#0a1612" }}
+    >
       <svg
-        viewBox={`-50 40 ${MAP_WIDTH + 100} ${MAP_HEIGHT - 60}`}
+        ref={svgRef}
+        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
         className="absolute inset-0 w-full h-full"
         preserveAspectRatio="xMidYMid slice"
+        style={{ cursor: isPanning ? "grabbing" : "grab" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onWheel={handleWheel}
       >
         <defs>
           <filter id="countryGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -208,7 +373,13 @@ export default function WorldMap({
         </defs>
 
         {/* Ocean */}
-        <rect x="0" y="0" width={MAP_WIDTH} height={MAP_HEIGHT} fill="url(#oceanGradient)" />
+        <rect
+          x={MAP_BOUNDS.minX}
+          y={MAP_BOUNDS.minY}
+          width={MAP_BOUNDS.maxX - MAP_BOUNDS.minX}
+          height={MAP_BOUNDS.maxY - MAP_BOUNDS.minY}
+          fill="url(#oceanGradient)"
+        />
 
         {/* Grid lines */}
         {[-60, -30, 0, 30, 60].map((lat) => {
@@ -216,9 +387,9 @@ export default function WorldMap({
           return (
             <g key={`lat-${lat}`}>
               <line
-                x1="0"
+                x1={MAP_BOUNDS.minX}
                 y1={y}
-                x2={MAP_WIDTH}
+                x2={MAP_BOUNDS.maxX}
                 y2={y}
                 stroke="rgba(74, 222, 128, 0.08)"
                 strokeWidth="1"
@@ -243,9 +414,9 @@ export default function WorldMap({
             <line
               key={`lon-${lon}`}
               x1={x}
-              y1="0"
+              y1={MAP_BOUNDS.minY}
               x2={x}
-              y2={MAP_HEIGHT}
+              y2={MAP_BOUNDS.maxY}
               stroke="rgba(74, 222, 128, 0.06)"
               strokeWidth="1"
               strokeDasharray="8 12"
@@ -376,9 +547,136 @@ export default function WorldMap({
         )}
       </AnimatePresence>
 
+      {/* Search UI */}
+      <div data-tour="map-search" className="absolute top-16 left-3 right-3 z-20 sm:left-auto sm:right-6 sm:top-20 sm:w-72">
+        <div className="relative">
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all w-full sm:w-auto"
+            style={{
+              background: "rgba(10, 22, 18, 0.9)",
+              border: "1px solid rgba(74, 222, 128, 0.2)",
+              color: "rgba(255,255,255,0.7)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <Search size={16} style={{ color: "var(--tree-healthy)" }} />
+            <span className="flex-1 text-left truncate">
+              {showSearch ? "Search countries..." : "Search countries"}
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {showSearch && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="absolute top-full left-0 right-0 z-50 mt-2 rounded-xl overflow-hidden"
+                style={{
+                  background: "rgba(10, 22, 18, 0.98)",
+                  border: "1px solid rgba(74, 222, 128, 0.2)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
+                <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+                  <Search size={14} style={{ color: "var(--tree-healthy)" }} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Type country name..."
+                    autoFocus
+                    className="flex-1 bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+                    style={{ fontFamily: "Space Mono, monospace" }}
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="text-white/40 hover:text-white/70">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="max-h-64 overflow-y-auto">
+                    {searchResults.map((country) => (
+                      <button
+                        key={country.code}
+                        onClick={() => handleSearchSelect(country)}
+                        className="w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors flex items-center gap-3"
+                      >
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ background: BRIGHT_REGION_COLORS[country.region] }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-white truncate">{country.name}</div>
+                          <div className="text-[10px] truncate" style={{ color: BRIGHT_REGION_COLORS[country.region] }}>
+                            {country.region}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-semibold" style={{ color: "var(--tree-healthy)" }}>
+                            {country.lays.toFixed(1)}
+                          </div>
+                          <div className="text-[9px] text-white/40">LAYS</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {searchQuery && searchResults.length === 0 && (
+                  <div className="px-3 py-4 text-center text-sm text-white/40">
+                    No countries found
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Zoom controls */}
+      <div
+        className="absolute bottom-24 right-3 z-10 flex flex-col gap-2 md:bottom-20 md:right-6"
+      >
+        <button
+          onClick={() => handleZoom(0.7)}
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+          style={{
+            background: "rgba(10, 22, 18, 0.8)",
+            border: "1px solid rgba(74, 222, 128, 0.2)",
+          }}
+          title="Zoom In"
+        >
+          <ZoomIn size={18} style={{ color: "var(--tree-healthy)" }} />
+        </button>
+        <button
+          onClick={() => handleZoom(1.4)}
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+          style={{
+            background: "rgba(10, 22, 18, 0.8)",
+            border: "1px solid rgba(74, 222, 128, 0.2)",
+          }}
+          title="Zoom Out"
+        >
+          <ZoomOut size={18} style={{ color: "var(--tree-healthy)" }} />
+        </button>
+        <button
+          onClick={handleReset}
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+          style={{
+            background: "rgba(10, 22, 18, 0.8)",
+            border: "1px solid rgba(74, 222, 128, 0.2)",
+          }}
+          title="Reset View"
+        >
+          <Locate size={18} style={{ color: "var(--tree-healthy)" }} />
+        </button>
+      </div>
+
       {/* Region legend */}
       <div
-        className="absolute bottom-24 left-3 z-10 max-w-[calc(100vw-1.5rem)] md:bottom-20 md:left-6 md:max-w-none"
+        className="absolute bottom-24 left-3 z-10 max-w-[calc(100vw-5rem)] md:bottom-20 md:left-6 md:max-w-none"
         style={{
           background: "transparent",
           border: "none",
@@ -405,14 +703,14 @@ export default function WorldMap({
                 onMouseLeave={() => onRegionHover?.(null)}
               >
                 <div
-                  className="w-3 h-3 rounded-sm"
+                  className="w-3 h-3 rounded-sm shrink-0"
                   style={{ 
                     background: color, 
                     boxShadow: isHighlighted ? `0 0 8px ${color}` : "none",
                   }}
                 />
                 <span
-                  className="text-xs"
+                  className="text-xs truncate"
                   style={{ 
                     color: isHighlighted ? color : "rgba(255,255,255,0.7)", 
                     fontFamily: "Space Mono, monospace",
@@ -421,7 +719,7 @@ export default function WorldMap({
                   {region.length > 20 ? region.slice(0, 18) + "…" : region}
                 </span>
                 <span
-                  className="text-[10px] ml-auto"
+                  className="text-[10px] ml-auto shrink-0"
                   style={{ color: "rgba(255,255,255,0.3)" }}
                 >
                   {countryCount}
@@ -430,6 +728,18 @@ export default function WorldMap({
             );
           })}
         </div>
+      </div>
+
+      {/* Pan hint for mobile */}
+      <div
+        className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 text-[10px] px-3 py-1.5 rounded-full md:hidden"
+        style={{
+          background: "rgba(10, 22, 18, 0.7)",
+          color: "rgba(255,255,255,0.5)",
+          fontFamily: "Space Mono, monospace",
+        }}
+      >
+        Drag to pan · Pinch to zoom
       </div>
     </div>
   );

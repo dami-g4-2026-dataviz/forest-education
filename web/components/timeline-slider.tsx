@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Play, Pause } from "lucide-react";
 import { TIMELINE_YEARS, type TimelineYear } from "@/lib/types";
 
@@ -19,16 +19,36 @@ export default function TimelineSlider({
 }: TimelineSliderProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const currentIndex = TIMELINE_YEARS.indexOf(year);
+  const isDragging = useRef(false);
 
-  const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const resolveYearFromX = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
     const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    const x = clientX - rect.left;
     const percentage = x / rect.width;
     const index = Math.round(percentage * (TIMELINE_YEARS.length - 1));
-    const clampedIndex = Math.max(0, Math.min(TIMELINE_YEARS.length - 1, index));
-    onChange(TIMELINE_YEARS[clampedIndex]);
+    const clamped = Math.max(0, Math.min(TIMELINE_YEARS.length - 1, index));
+    onChange(TIMELINE_YEARS[clamped]);
+  }, [onChange]);
+
+  const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    resolveYearFromX(e.clientX);
   };
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    isDragging.current = true;
+    resolveYearFromX(e.touches[0].clientX);
+  }, [resolveYearFromX]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    resolveYearFromX(e.touches[0].clientX);
+  }, [resolveYearFromX]);
+
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
+  }, []);
 
   return (
     <div
@@ -68,8 +88,12 @@ export default function TimelineSlider({
 
       <div
         ref={sliderRef}
-        className="relative order-3 flex h-9 basis-full cursor-pointer items-center sm:order-none sm:h-8 sm:flex-1 sm:basis-auto"
+        className="relative order-3 flex h-10 basis-full cursor-pointer items-center sm:order-none sm:h-8 sm:flex-1 sm:basis-auto"
         onClick={handleSliderClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: "none" }}
       >
         <div
           className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 rounded-full"
@@ -98,8 +122,8 @@ export default function TimelineSlider({
               <div
                 className="rounded-full transition-all duration-300"
                 style={{
-                  width: isActive ? 12 : isMajorYear ? 8 : 4,
-                  height: isActive ? 12 : isMajorYear ? 8 : 4,
+                  width: isActive ? 14 : isMajorYear ? 8 : 4,
+                  height: isActive ? 14 : isMajorYear ? 8 : 4,
                   background: isActive ? "var(--tree-healthy)" : isPast ? "rgba(74, 222, 128, 0.5)" : "rgba(255,255,255,0.2)",
                   boxShadow: isActive ? "0 0 12px var(--tree-healthy)" : "none",
                 }}

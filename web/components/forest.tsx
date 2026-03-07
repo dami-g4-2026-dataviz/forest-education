@@ -48,6 +48,13 @@ const STARS = Array.from({ length: 250 }, (_, i) => ({
   opacity: 0.08 + (i % 6) * 0.07,
 }));
 
+const AXIS_MAX_YEARS = 14;
+
+function sr(seed: number) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
 export default function Forest({
   countries,
   highlightMetric,
@@ -188,8 +195,13 @@ export default function Forest({
     }));
   }, [treePositions, activeRegion]);
 
+  const guideTreeIndex = useMemo(() => {
+    if (treePositions.length === 0) return -1;
+    return Math.floor(treePositions.length / 2);
+  }, [treePositions]);
+
   const yAxisTicks = useMemo(() => {
-    const maxYears = 14;
+    const maxYears = AXIS_MAX_YEARS;
     const ticks = isMobile ? [0, 4, 8, 12] : [0, 2, 4, 6, 8, 10, 12, 14];
     const marginL = isMobile ? 34 : 80;
     const maxTrunkH = groundY * 0.68;
@@ -275,84 +287,105 @@ export default function Forest({
           strokeWidth={1}
         />
 
-        {/* Y-Axis */}
-        <line
-          x1={isMobile ? 28 : 70}
-          y1={groundY}
-          x2={isMobile ? 28 : 70}
-          y2={groundY - groundY * 0.72}
-          stroke="rgba(255, 255, 255, 0.15)"
-          strokeWidth={1}
+        <rect
+          data-tour="forest-y-axis"
+          x={isMobile ? 2 : 6}
+          y={groundY - groundY * 0.72 - 14}
+          width={isMobile ? 36 : 72}
+          height={groundY * 0.72 + 28}
+          fill="transparent"
+          pointerEvents="none"
         />
-        
-        {/* Y-Axis ticks and labels */}
-        {yAxisTicks.map(({ years, y }) => (
-          <g key={years}>
-            <line
-              x1={isMobile ? 24 : 65}
-              y1={y}
-              x2={isMobile ? 28 : 70}
-              y2={y}
-              stroke="rgba(255, 255, 255, 0.25)"
-              strokeWidth={1}
-            />
-            <text
-              x={isMobile ? 18 : 58}
-              y={y + 4}
-              textAnchor="end"
-              fill="rgba(255, 255, 255, 0.4)"
-              fontSize={isMobile ? 9 : 10}
-              fontFamily="Space Mono, monospace"
-            >
-              {years}
-            </text>
-            {/* Horizontal grid line */}
-            <line
-              x1={isMobile ? 28 : 70}
-              y1={y}
-              x2={svgWidth - 40}
-              y2={y}
-              stroke="rgba(255, 255, 255, 0.04)"
-              strokeWidth={1}
-              strokeDasharray="4 8"
-            />
-          </g>
-        ))}
-        
-        {/* Y-Axis title */}
-        <text
-          x={isMobile ? 14 : 20}
-          y={groundY - groundY * 0.36}
-          textAnchor="middle"
-          fill="rgba(255, 255, 255, 0.5)"
-          fontSize={isMobile ? 9 : 11}
-          fontFamily="Space Mono, monospace"
-          transform={`rotate(-90, ${isMobile ? 14 : 20}, ${groundY - groundY * 0.36})`}
-        >
-          {isMobile ? "Years in school" : "Years in School (trunk height)"}
-        </text>
 
-        {/* X-Axis title */}
-        <text
-          x={svgWidth / 2}
-          y={groundY + (isMobile ? 48 : 60)}
-          textAnchor="middle"
-          fill="rgba(255, 255, 255, 0.4)"
-          fontSize={isMobile ? 9 : 11}
-          fontFamily="Space Mono, monospace"
-        >
-          {activeRegion 
-            ? isMobile
-              ? `${activeRegion} countries`
-              : `Countries in ${activeRegion} (sorted by learning outcomes, low → high)`
-            : isMobile
-              ? "Regions by learning outcomes"
-              : "Region (sorted by learning outcomes, low → high)"
-          }
-        </text>
+        <g>
+          {/* Y-Axis */}
+          <line
+            x1={isMobile ? 28 : 70}
+            y1={groundY}
+            x2={isMobile ? 28 : 70}
+            y2={groundY - groundY * 0.72}
+            stroke="rgba(255, 255, 255, 0.15)"
+            strokeWidth={1}
+          />
+
+          {/* Y-Axis ticks and labels */}
+          {yAxisTicks.map(({ years, y }) => (
+            <g key={years}>
+              <line
+                x1={isMobile ? 24 : 65}
+                y1={y}
+                x2={isMobile ? 28 : 70}
+                y2={y}
+                stroke="rgba(255, 255, 255, 0.25)"
+                strokeWidth={1}
+              />
+              <text
+                x={isMobile ? 18 : 58}
+                y={y + 4}
+                textAnchor="end"
+                fill="rgba(255, 255, 255, 0.4)"
+                fontSize={isMobile ? 9 : 10}
+                fontFamily="Space Mono, monospace"
+              >
+                {years}
+              </text>
+              <line
+                x1={isMobile ? 28 : 70}
+                y1={y}
+                x2={svgWidth - 40}
+                y2={y}
+                stroke="rgba(255, 255, 255, 0.04)"
+                strokeWidth={1}
+                strokeDasharray="4 8"
+              />
+            </g>
+          ))}
+
+          <text
+            x={isMobile ? 14 : 20}
+            y={groundY - groundY * 0.36}
+            textAnchor="middle"
+            fill="rgba(255, 255, 255, 0.5)"
+            fontSize={isMobile ? 9 : 11}
+            fontFamily="Space Mono, monospace"
+            transform={`rotate(-90, ${isMobile ? 14 : 20}, ${groundY - groundY * 0.36})`}
+          >
+            {isMobile ? "Years in school" : "Years in School (trunk height)"}
+          </text>
+        </g>
+
+        <rect
+          data-tour="forest-x-axis"
+          x={svgWidth * 0.2}
+          y={groundY + (isMobile ? 30 : 40)}
+          width={svgWidth * 0.6}
+          height={isMobile ? 26 : 30}
+          fill="transparent"
+          pointerEvents="none"
+        />
+
+        <g>
+          <text
+            x={svgWidth / 2}
+            y={groundY + (isMobile ? 48 : 60)}
+            textAnchor="middle"
+            fill="rgba(255, 255, 255, 0.4)"
+            fontSize={isMobile ? 9 : 11}
+            fontFamily="Space Mono, monospace"
+          >
+            {activeRegion 
+              ? isMobile
+                ? `${activeRegion} countries`
+                : `Countries in ${activeRegion} (sorted by learning outcomes, low → high)`
+              : isMobile
+                ? "Regions by learning outcomes"
+                : "Region (sorted by learning outcomes, low → high)"
+            }
+          </text>
+        </g>
 
         {/* Legend box */}
-        <g transform={`translate(${isMobile ? 12 : 92}, ${isMobile ? 12 : 30})`}>
+        <g data-tour="forest-legend" transform={`translate(${isMobile ? 12 : 92}, ${isMobile ? 12 : 30})`}>
           <rect
             x={0}
             y={0}
@@ -420,15 +453,47 @@ export default function Forest({
           )
         ))}
 
-        {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }) => {
+        {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }, index) => {
           const dimmed = getTreeDimmed(country);
           const dimOpacity = focusedCountryCode ? 0.05 : 0.12;
-          const trunkHeight = (country.yearsInSchool / 16) * maxTrunkH;
+          const trunkHeight = (country.yearsInSchool / AXIS_MAX_YEARS) * maxTrunkH;
           const canopyRadius = Math.max(8 * scale, (country.lays / 16) * 60 * scale);
-          const labelY = y - trunkHeight - canopyRadius - 18;
+          const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
+          const leanAngle = (sr(seed * 3) - 0.5) * 0.06;
+          const trunkTipX = Math.sin(leanAngle) * trunkHeight;
+          // Match the bright focal point in the canopy so the guide line
+          // starts from the exact visual cue users should read.
+          const canopyGuideX = x + trunkTipX;
+          const canopyGuideY = y - trunkHeight;
+          const canopyTopY = canopyGuideY - canopyRadius * 1.27;
+          const labelY = canopyTopY - 18;
+          const readHighlightTop = Math.min(y - trunkHeight, canopyTopY) - 28;
+          const readHighlightHeight = y - readHighlightTop + 28;
           
           return (
             <g key={country.code}>
+              {index === guideTreeIndex && (
+                <>
+                  <rect
+                    data-tour="forest-read"
+                    x={x - canopyRadius - 20}
+                    y={readHighlightTop}
+                    width={canopyRadius * 2 + 40}
+                    height={readHighlightHeight}
+                    fill="transparent"
+                    pointerEvents="none"
+                  />
+                  <rect
+                    data-tour="forest-read-canopy-top"
+                    x={canopyGuideX - 2}
+                    y={canopyGuideY - 2}
+                    width={4}
+                    height={4}
+                    fill="transparent"
+                    pointerEvents="none"
+                  />
+                </>
+              )}
               <Tree
                 country={country}
                 x={x}
@@ -444,34 +509,35 @@ export default function Forest({
                 highlightMetric={highlightMetric}
                 zoomScale={zoomParams.scale}
               />
-              {/* LAYS value label above tree */}
-              <text
-                x={x}
-                y={labelY}
-                textAnchor="middle"
-                fill={REGION_COLORS[country.region]}
-                opacity={dimmed ? 0.2 : 0.9}
-                fontSize={isMobile ? 10 : 13}
-                fontFamily="Space Mono, monospace"
-                fontWeight={700}
-                style={{ transition: "opacity 0.35s ease" }}
-              >
-                {country.lays.toFixed(1)}
-              </text>
-              {!isMobile && (
+              <g data-tour={index === guideTreeIndex ? "forest-lays-label" : undefined}>
                 <text
                   x={x}
-                  y={labelY + 12}
+                  y={labelY}
                   textAnchor="middle"
-                  fill="rgba(255, 255, 255, 0.4)"
-                  opacity={dimmed ? 0.15 : 0.6}
-                  fontSize={9}
+                  fill={REGION_COLORS[country.region]}
+                  opacity={dimmed ? 0.2 : 0.9}
+                  fontSize={isMobile ? 10 : 13}
                   fontFamily="Space Mono, monospace"
+                  fontWeight={700}
                   style={{ transition: "opacity 0.35s ease" }}
                 >
-                  yrs learned
+                  {country.lays.toFixed(1)}
                 </text>
-              )}
+                {!isMobile && (
+                  <text
+                    x={x}
+                    y={labelY + 12}
+                    textAnchor="middle"
+                    fill="rgba(255, 255, 255, 0.4)"
+                    opacity={dimmed ? 0.15 : 0.6}
+                    fontSize={9}
+                    fontFamily="Space Mono, monospace"
+                    style={{ transition: "opacity 0.35s ease" }}
+                  >
+                    yrs learned
+                  </text>
+                )}
+              </g>
             </g>
           );
         })}

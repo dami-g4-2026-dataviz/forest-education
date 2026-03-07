@@ -21,6 +21,8 @@ interface TreeProps {
   zoomScale?: number;
 }
 
+const AXIS_MAX_YEARS = 14;
+
 function getTreeColor(country: CountryData, highlightMetric: string | null): string {
   const regionColor = REGION_COLORS[country.region];
   if (!highlightMetric) return regionColor;
@@ -86,8 +88,8 @@ export default function Tree({
   const isActive = isHovered || highlighted;
 
   const trunkH = maxTrunkH
-    ? (country.yearsInSchool / 16) * maxTrunkH
-    : (country.yearsInSchool / 16) * 110 * scale;
+    ? (country.yearsInSchool / AXIS_MAX_YEARS) * maxTrunkH
+    : (country.yearsInSchool / AXIS_MAX_YEARS) * 110 * scale;
   const trunkW = Math.max(3, 5 * scale);
 
   // Canopy base radius driven by LAYS — minimum ensures crisis trees are visible
@@ -104,7 +106,9 @@ export default function Tree({
   const numClusters = zoomScale >= 3 ? basePetals * 2 : basePetals;
 
   const canopyCX = trunkTipX;
-  const canopyCY = -trunkH;
+  // Keep the bright focal point aligned with the years-in-school level,
+  // so the center of the canopy sits on the same y-value as the trunk top.
+  const canopyCY = -trunkH + canopyR * 0.08;
 
   if (!mounted) return null;
 
