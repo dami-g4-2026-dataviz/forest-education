@@ -21,6 +21,16 @@ interface TooltipState {
   y: number;
 }
 
+interface RegionMean {
+  region: Region;
+  yearsInSchool: number;
+  lays: number;
+  learningPoverty: number;
+  gpiPrimary: number;
+  countryCount: number;
+  color: string;
+}
+
 const REGION_ORDER: Region[] = [
   "Sub-Saharan Africa",
   "South Asia",
@@ -49,6 +59,8 @@ export default function Forest({
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 1200, height: 700 });
   const [tooltip, setTooltip] = useState<TooltipState>({ country: null, x: 0, y: 0 });
+  const [regionTooltip, setRegionTooltip] = useState<{ region: RegionMean | null; x: number; y: number }>({ region: null, x: 0, y: 0 });
+  const isMobile = dims.width < 768;
 
   useEffect(() => {
     const update = () => {
@@ -62,43 +74,89 @@ export default function Forest({
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  const regionMeans = useMemo(() => {
+    const regionGroups: Record<Region, CountryData[]> = {} as Record<Region, CountryData[]>;
+    
+    countries.forEach((c) => {
+      if (!regionGroups[c.region]) {
+        regionGroups[c.region] = [];
+      }
+      regionGroups[c.region].push(c);
+    });
+
+    return REGION_ORDER.map((region) => {
+      const group = regionGroups[region] || [];
+      if (group.length === 0) return null;
+      
+      const avgYearsInSchool = group.reduce((sum, c) => sum + c.yearsInSchool, 0) / group.length;
+      const avgLays = group.reduce((sum, c) => sum + c.lays, 0) / group.length;
+      const avgLearningPoverty = group.reduce((sum, c) => sum + c.learningPoverty, 0) / group.length;
+      const avgGpi = group.reduce((sum, c) => sum + c.gpiPrimary, 0) / group.length;
+      
+      return {
+        region,
+        yearsInSchool: avgYearsInSchool,
+        lays: avgLays,
+        learningPoverty: avgLearningPoverty,
+        gpiPrimary: avgGpi,
+        countryCount: group.length,
+        color: REGION_COLORS[region] ?? "#4ade80",
+      };
+    }).filter(Boolean) as RegionMean[];
+  }, [countries]);
+
+  const regionAsCountry = useMemo(() => {
+    return regionMeans.map((r) => ({
+      code: r.region.replace(/\s+/g, "_").toUpperCase(),
+      name: r.region,
+      region: r.region,
+      yearsInSchool: r.yearsInSchool,
+      lays: r.lays,
+      learningPoverty: r.learningPoverty,
+      gpiPrimary: r.gpiPrimary,
+      countryCount: r.countryCount,
+    } as CountryData & { countryCount: number }));
+  }, [regionMeans]);
+
+  const displayedCountries = useMemo(() => {
+    if (activeRegion) {
+      return countries
+        .filter((c) => c.region === activeRegion)
+        .sort((a, b) => a.lays - b.lays);
+    }
+    return regionAsCountry;
+  }, [activeRegion, countries, regionAsCountry]);
+
   const layout = useMemo(() => {
     const containerWidth = dims.width;
     const height = dims.height;
-    const groundY = Math.round(height * 0.85);
-    const marginL = 32;
-    const marginR = 32;
+    const groundY = Math.round(height * (isMobile ? 0.72 : 0.78));
+    const marginL = isMobile ? 34 : 80;
+    const marginR = isMobile ? 24 : 80;
 
-    const sorted = [...countries].sort((a, b) => {
-      const ra = REGION_ORDER.indexOf(a.region);
-      const rb = REGION_ORDER.indexOf(b.region);
-      if (ra !== rb) return ra - rb;
-      return a.yearsInSchool - b.yearsInSchool;
-    });
-
-    const n = sorted.length;
+    const n = displayedCountries.length;
     const svgWidth = containerWidth;
     const usableWidth = svgWidth - marginL - marginR;
-    const spacing = usableWidth / n;
+    const spacing = usableWidth / Math.max(n, 1);
 
-    const maxTrunkH = groundY * 0.72;
-    const scaleByWidth = spacing / (11 * 2);
-    const scale = Math.max(0.3, Math.min(2.5, scaleByWidth));
+    const maxTrunkH = groundY * (isMobile ? 0.6 : 0.68);
+    const baseScale = activeRegion ? (isMobile ? 0.72 : 1.0) : (isMobile ? 0.8 : 1.2);
+    const scale = Math.max(baseScale, Math.min(isMobile ? 1.9 : 3.5, spacing / (isMobile ? 70 : 90)));
 
     return {
-      positions: sorted.map((country, i) => ({
+      positions: displayedCountries.map((country, i) => ({
         country,
         x: marginL + i * spacing + spacing / 2,
         y: groundY,
         scale,
         maxTrunkH,
-        delay: i * 18 + 80,
+        delay: i * 80 + 100,
       })),
       svgWidth,
       groundY,
       maxTrunkH,
     };
-  }, [dims, countries]);
+  }, [dims, displayedCountries, activeRegion, isMobile]);
 
   const { positions: treePositions, svgWidth, groundY } = layout;
 
@@ -109,50 +167,39 @@ export default function Forest({
     []
   );
 
-  const getTreeDimmed = (country: CountryData) => {
-    if (focusedCountryCode) {
-      return country.code !== focusedCountryCode;
-    }
-    if (activeRegion) {
-      return country.region !== activeRegion;
-    }
+  const getTreeDimmed = (_country: CountryData) => {
     return false;
   };
 
   const isTreeHighlighted = (country: CountryData) => {
-    if (chapterId === 2 && country.learningPoverty > 70) return true;
-    if (chapterId === 3 && country.lays < 4) return true;
-    if (chapterId === 4 && country.gpiPrimary < 0.85) return true;
     return false;
   };
 
   const zoomParams = useMemo(() => {
-    if (focusedCountryCode) {
-      const tree = treePositions.find((t) => t.country.code === focusedCountryCode);
-      return { x: tree?.x ?? svgWidth / 2, scale: 4.5 };
-    }
-    if (activeRegion) {
-      const trees = treePositions.filter((t) => t.country.region === activeRegion);
-      const avgX = trees.reduce((sum, t) => sum + t.x, 0) / trees.length;
-      return { x: avgX, scale: 2.8 };
-    }
     return { x: svgWidth / 2, scale: 1 };
-  }, [focusedCountryCode, activeRegion, treePositions, svgWidth]);
+  }, [svgWidth]);
 
-  const regionLabels = useMemo(() => {
-    return REGION_ORDER.map((region) => {
-      const trees = treePositions.filter((t) => t.country.region === region);
-      if (!trees.length) return null;
-      const minX = Math.min(...trees.map((t) => t.x));
-      const maxX = Math.max(...trees.map((t) => t.x));
-      return {
-        region,
-        x: (minX + maxX) / 2,
-        color: REGION_COLORS[region],
-        firstX: minX,
-      };
-    }).filter(Boolean);
-  }, [treePositions]);
+  const treeLabels = useMemo(() => {
+    return treePositions.map(({ country, x }) => ({
+      label: activeRegion ? country.name : country.region,
+      region: country.region,
+      x,
+      color: REGION_COLORS[country.region],
+    }));
+  }, [treePositions, activeRegion]);
+
+  const yAxisTicks = useMemo(() => {
+    const maxYears = 14;
+    const ticks = isMobile ? [0, 4, 8, 12] : [0, 2, 4, 6, 8, 10, 12, 14];
+    const marginL = isMobile ? 34 : 80;
+    const maxTrunkH = groundY * 0.68;
+    
+    return ticks.map((years) => {
+      const normalizedHeight = years / maxYears;
+      const pixelY = groundY - normalizedHeight * maxTrunkH;
+      return { years, y: pixelY, x: marginL - 10 };
+    });
+  }, [groundY, isMobile]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full select-none overflow-hidden">
@@ -182,6 +229,9 @@ export default function Forest({
           </radialGradient>
           <filter id="fogBlur">
             <feGaussianBlur stdDeviation="14" />
+          </filter>
+          <filter id="legendShadow" x="-30%" y="-30%" width="160%" height="180%">
+            <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="rgba(0,0,0,0.45)" />
           </filter>
         </defs>
 
@@ -225,67 +275,204 @@ export default function Forest({
           strokeWidth={1}
         />
 
-        {regionLabels.map((rl, ri) => {
-          if (!rl || ri === 0) return null;
-          return (
+        {/* Y-Axis */}
+        <line
+          x1={isMobile ? 28 : 70}
+          y1={groundY}
+          x2={isMobile ? 28 : 70}
+          y2={groundY - groundY * 0.72}
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth={1}
+        />
+        
+        {/* Y-Axis ticks and labels */}
+        {yAxisTicks.map(({ years, y }) => (
+          <g key={years}>
             <line
-              key={rl.region + "-div"}
-              x1={rl.firstX - 6}
-              y1={groundY - 30}
-              x2={rl.firstX - 6}
-              y2={groundY}
-              stroke={rl.color}
-              strokeWidth={0.5}
-              opacity={0.18}
+              x1={isMobile ? 24 : 65}
+              y1={y}
+              x2={isMobile ? 28 : 70}
+              y2={y}
+              stroke="rgba(255, 255, 255, 0.25)"
+              strokeWidth={1}
             />
-          );
-        })}
+            <text
+              x={isMobile ? 18 : 58}
+              y={y + 4}
+              textAnchor="end"
+              fill="rgba(255, 255, 255, 0.4)"
+              fontSize={isMobile ? 9 : 10}
+              fontFamily="Space Mono, monospace"
+            >
+              {years}
+            </text>
+            {/* Horizontal grid line */}
+            <line
+              x1={isMobile ? 28 : 70}
+              y1={y}
+              x2={svgWidth - 40}
+              y2={y}
+              stroke="rgba(255, 255, 255, 0.04)"
+              strokeWidth={1}
+              strokeDasharray="4 8"
+            />
+          </g>
+        ))}
+        
+        {/* Y-Axis title */}
+        <text
+          x={isMobile ? 14 : 20}
+          y={groundY - groundY * 0.36}
+          textAnchor="middle"
+          fill="rgba(255, 255, 255, 0.5)"
+          fontSize={isMobile ? 9 : 11}
+          fontFamily="Space Mono, monospace"
+          transform={`rotate(-90, ${isMobile ? 14 : 20}, ${groundY - groundY * 0.36})`}
+        >
+          {isMobile ? "Years in school" : "Years in School (trunk height)"}
+        </text>
 
-        {regionLabels.map(
-          (rl) =>
-            rl && (
-              <text
-                key={rl.region}
-                x={rl.x}
-                y={groundY + 20}
-                textAnchor="middle"
-                fill={rl.color}
-                opacity={
-                  activeRegion
-                    ? activeRegion === rl.region
-                      ? 0.8
-                      : 0.12
-                    : 0.35
-                }
-                fontSize={8}
-                fontFamily="Space Mono, monospace"
-                style={{ transition: "opacity 0.35s ease" }}
-              >
-                {rl.region.replace(" & ", "/").split(" ")[0]}
-              </text>
-            )
-        )}
+        {/* X-Axis title */}
+        <text
+          x={svgWidth / 2}
+          y={groundY + (isMobile ? 48 : 60)}
+          textAnchor="middle"
+          fill="rgba(255, 255, 255, 0.4)"
+          fontSize={isMobile ? 9 : 11}
+          fontFamily="Space Mono, monospace"
+        >
+          {activeRegion 
+            ? isMobile
+              ? `${activeRegion} countries`
+              : `Countries in ${activeRegion} (sorted by learning outcomes, low → high)`
+            : isMobile
+              ? "Regions by learning outcomes"
+              : "Region (sorted by learning outcomes, low → high)"
+          }
+        </text>
+
+        {/* Legend box */}
+        <g transform={`translate(${isMobile ? 12 : 92}, ${isMobile ? 12 : 30})`}>
+          <rect
+            x={0}
+            y={0}
+            width={isMobile ? 156 : 202}
+            height={isMobile ? 78 : 104}
+            rx={12}
+            fill="rgba(5, 11, 8, 0.94)"
+            stroke="rgba(255, 255, 255, 0.14)"
+            strokeWidth={1}
+            filter="url(#legendShadow)"
+          />
+          <rect
+            x={1}
+            y={1}
+            width={isMobile ? 154 : 200}
+            height={isMobile ? 76 : 102}
+            rx={11}
+            fill="rgba(10, 18, 14, 0.82)"
+            stroke="rgba(74, 222, 128, 0.08)"
+            strokeWidth={1}
+          />
+          <text
+            x={14}
+            y={isMobile ? 21 : 24}
+            fill="rgba(255, 255, 255, 0.82)"
+            fontSize={isMobile ? 10 : 12}
+            fontFamily="Space Mono, monospace"
+            fontWeight={600}
+          >
+            How to read
+          </text>
+          
+          {/* Trunk legend */}
+          <rect x={14} y={isMobile ? 32 : 40} width={isMobile ? 6 : 7} height={isMobile ? 18 : 24} rx={3} fill="rgba(139, 90, 43, 0.85)" />
+          <text x={isMobile ? 28 : 34} y={isMobile ? 44 : 55} fill="rgba(255, 255, 255, 0.72)" fontSize={isMobile ? 9 : 11} fontFamily="Space Mono, monospace">
+            {isMobile ? "Trunk = enrolled" : "Trunk = Years enrolled"}
+          </text>
+          
+          {/* Canopy legend */}
+          <circle cx={18} cy={isMobile ? 60 : 82} r={isMobile ? 8 : 10} fill="var(--tree-healthy)" opacity={0.82} />
+          <text x={isMobile ? 28 : 34} y={isMobile ? 64 : 86} fill="rgba(255, 255, 255, 0.72)" fontSize={isMobile ? 9 : 11} fontFamily="Space Mono, monospace">
+            {isMobile ? "Canopy = learned" : "Canopy = Years learned"}
+          </text>
+        </g>
+
+        {treeLabels.map((tl, i) => (
+          (!isMobile || treeLabels.length <= 8 || i % 2 === 0 || activeRegion === null) && (
+          <text
+            key={`${tl.label}-${i}`}
+            x={tl.x}
+            y={groundY + (isMobile ? 28 : 36)}
+            textAnchor="middle"
+            fill={tl.color}
+            opacity={0.7}
+            fontSize={isMobile ? 8 : activeRegion ? 10 : 12}
+            fontFamily="Space Mono, monospace"
+            fontWeight={500}
+            style={{ transition: "opacity 0.35s ease" }}
+          >
+            {activeRegion 
+              ? (tl.label.length > 12 ? tl.label.slice(0, 10) + "…" : tl.label)
+              : tl.label.replace("Latin America & Caribbean", "Latin America")
+            }
+          </text>
+          )
+        ))}
 
         {treePositions.map(({ country, x, y, scale, maxTrunkH, delay }) => {
           const dimmed = getTreeDimmed(country);
           const dimOpacity = focusedCountryCode ? 0.05 : 0.12;
+          const trunkHeight = (country.yearsInSchool / 16) * maxTrunkH;
+          const canopyRadius = Math.max(8 * scale, (country.lays / 16) * 60 * scale);
+          const labelY = y - trunkHeight - canopyRadius - 18;
+          
           return (
-            <Tree
-              key={country.code}
-              country={country}
-              x={x}
-              y={y}
-              scale={scale}
-              maxTrunkH={maxTrunkH}
-              highlighted={isTreeHighlighted(country)}
-              dimmed={dimmed}
-              dimOpacity={dimOpacity}
-              onHover={handleHover}
-              onClick={onCountryClick}
-              animationDelay={delay}
-              highlightMetric={highlightMetric}
-              zoomScale={zoomParams.scale}
-            />
+            <g key={country.code}>
+              <Tree
+                country={country}
+                x={x}
+                y={y}
+                scale={scale}
+                maxTrunkH={maxTrunkH}
+                highlighted={isTreeHighlighted(country)}
+                dimmed={dimmed}
+                dimOpacity={dimOpacity}
+                onHover={handleHover}
+                onClick={onCountryClick}
+                animationDelay={delay}
+                highlightMetric={highlightMetric}
+                zoomScale={zoomParams.scale}
+              />
+              {/* LAYS value label above tree */}
+              <text
+                x={x}
+                y={labelY}
+                textAnchor="middle"
+                fill={REGION_COLORS[country.region]}
+                opacity={dimmed ? 0.2 : 0.9}
+                fontSize={isMobile ? 10 : 13}
+                fontFamily="Space Mono, monospace"
+                fontWeight={700}
+                style={{ transition: "opacity 0.35s ease" }}
+              >
+                {country.lays.toFixed(1)}
+              </text>
+              {!isMobile && (
+                <text
+                  x={x}
+                  y={labelY + 12}
+                  textAnchor="middle"
+                  fill="rgba(255, 255, 255, 0.4)"
+                  opacity={dimmed ? 0.15 : 0.6}
+                  fontSize={9}
+                  fontFamily="Space Mono, monospace"
+                  style={{ transition: "opacity 0.35s ease" }}
+                >
+                  yrs learned
+                </text>
+              )}
+            </g>
           );
         })}
       </svg>
