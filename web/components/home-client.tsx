@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { ChevronDown, TreePine, ArrowRight, Settings2, ScatterChart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CountryData, Region } from "@/lib/types";
-import { REGION_COLORS, NARRATIVE_CHAPTERS } from "@/lib/constants";
+import { NARRATIVE_CHAPTERS } from "@/lib/constants";
 import Forest from "./forest";
 import CountryDetail from "./country-detail";
 import Legend from "./legend";
@@ -143,17 +143,6 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 <em style={{ color: "var(--tree-healthy)", fontStyle: "italic" }}>Forest</em>
               </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2, duration: 1.0 }}
-                className="mt-5 text-sm"
-                style={{ color: "rgba(255,255,255,0.45)", fontFamily: "Space Mono, monospace", lineHeight: 1.8 }}
-              >
-                53% of 10-year-olds in low- and middle-income countries cannot read and understand a simple story.
-                <br />
-                This is the story enrollment rates don't tell.
-              </motion.p>
             </div>
 
             <motion.button
@@ -220,15 +209,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   className="text-xs mb-4 pb-3"
                   style={{ color: "rgba(255,255,255,0.3)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
                 >
-                  That&rsquo;s 250M children in school — but not learning.
+                  That&rsquo;s 250M children enrolled, but not learning.
                 </div>
-                <p
-                  className="text-sm leading-relaxed mb-4"
-                  style={{ color: "rgba(255,255,255,0.65)", fontWeight: 300 }}
-                >
-                  Every tree is a country. Two dimensions. One picture.
-                </p>
-
                 {/* Example trees: Niger vs Finland */}
                 <div className="flex justify-around items-end mb-2 gap-4">
                   {/* Niger */}
@@ -384,7 +366,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 style={{ background: "rgba(8, 16, 12, 0.6)" }}
               >
                 <h2 className="text-sm md:text-base font-medium text-white/90 mb-1" style={{ fontFamily: "Playfair Display, serif" }}>
-                  &ldquo;The world has solved the problem of enrollment, but not the problem of learning.&rdquo;
+                  The world has largely solved enrollment. It hasn&rsquo;t solved learning.
                 </h2>
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]" style={{ fontFamily: "Space Mono, monospace" }}>
                   The Learning Forest · SDG 4
@@ -422,70 +404,47 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 flex-1 flex-wrap">
-                {(Object.entries(REGION_COLORS) as [Region, string][]).map(([region, color]) => {
-                  const isActive = activeRegion === region;
-                  return (
-                    <button
-                      key={region}
-                      onClick={() => handleRegionClick(region)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full transition-all"
-                      style={{
-                        background: isActive ? `${color}25` : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${isActive ? color : "rgba(255,255,255,0.08)"}`,
-                        color: isActive ? color : "rgba(255,255,255,0.45)",
-                        fontFamily: "Space Mono, monospace",
-                      }}
-                    >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: color, opacity: isActive ? 1 : 0.5 }}
-                      />
-                      {region}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={() => setShowScatter((s) => !s)}
+                  className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
+                    color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
+                  }}
+                >
+                  <ScatterChart size={14} />
+                  Scatter View
+                </button>
+
+                <button
+                  onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
+                  className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    background: highlightMetric ? "rgba(239, 68, 68, 0.15)" : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${highlightMetric ? "#EF4444" : "rgba(255,255,255,0.08)"}`,
+                    color: highlightMetric ? "#EF4444" : "rgba(255,255,255,0.45)",
+                  }}
+                >
+                  <Settings2 size={14} />
+                  Highlight Poverty
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIntroStep(1);
+                    setNarrativeChapter(0);
+                  }}
+                  className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
+                  style={{
+                    color: "rgba(255,255,255,0.35)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  Replay Intro
+                </button>
               </div>
-
-              <button
-                onClick={() => setShowScatter((s) => !s)}
-                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  background: showScatter ? "rgba(74, 222, 128, 0.12)" : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${showScatter ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`,
-                  color: showScatter ? "var(--tree-healthy)" : "rgba(255,255,255,0.45)",
-                }}
-              >
-                <ScatterChart size={14} />
-                Scatter View
-              </button>
-
-              <button
-                onClick={() => setHighlightMetric(highlightMetric ? null : "learningPoverty")}
-                className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  background: highlightMetric ? "rgba(239, 68, 68, 0.15)" : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${highlightMetric ? "#EF4444" : "rgba(255,255,255,0.08)"}`,
-                  color: highlightMetric ? "#EF4444" : "rgba(255,255,255,0.45)",
-                }}
-              >
-                <Settings2 size={14} />
-                Highlight Poverty
-              </button>
-
-              <button
-                onClick={() => {
-                  setIntroStep(1);
-                  setNarrativeChapter(0);
-                }}
-                className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{
-                  color: "rgba(255,255,255,0.35)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                Replay Intro
-              </button>
             </div>
 
             <div className="absolute top-20 left-6 z-30 pointer-events-auto">
