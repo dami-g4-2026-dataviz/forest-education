@@ -90,12 +90,8 @@ export default function Tree({
     : (country.yearsInSchool / 16) * 110 * scale;
   const trunkW = Math.max(3, 5 * scale);
 
-<<<<<<< HEAD:client/src/components/Tree.tsx
   // Canopy base radius driven by LAYS — minimum ensures crisis trees are visible
   const canopyR = Math.max(8 * scale, (country.lays / 16) * 60 * scale);
-=======
-  const canopyR = (country.lays / 16) * 60 * scale;
->>>>>>> origin:web/components/tree.tsx
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
@@ -103,13 +99,9 @@ export default function Tree({
   const leanAngle = (sr(seed * 3) - 0.5) * 0.06;
   const trunkTipX = Math.sin(leanAngle) * trunkH;
 
-<<<<<<< HEAD:client/src/components/Tree.tsx
   // Number of foliage petal clusters — more for healthier trees; doubled at high zoom
   const basePetals = Math.max(4, Math.round(4 + learningRatio * 5));
-  const numPetals = zoomScale >= 3 ? basePetals * 2 : basePetals;
-=======
-  const numClusters = Math.max(1, Math.round((2 + sr(seed) * 2) + learningRatio * 6));
->>>>>>> origin:web/components/tree.tsx
+  const numClusters = zoomScale >= 3 ? basePetals * 2 : basePetals;
 
   const canopyCX = trunkTipX;
   const canopyCY = -trunkH;
@@ -183,10 +175,7 @@ export default function Tree({
         );
       })}
 
-<<<<<<< HEAD:client/src/components/Tree.tsx
       {/* Bare spindly branches for crisis trees — heavier at high zoom */}
-=======
->>>>>>> origin:web/components/tree.tsx
       {learningRatio < 0.4 && (
         <>
           {[[-1.1, -0.55], [1.0, -0.5], [-0.75, -0.75], [0.85, -0.72]].map(([dx, dy], i) => (
