@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import type { CountryData, Region } from "@/lib/types";
-import { REGION_COLORS } from "@/lib/constants";
+import { REGION_COLORS, REGION_ABBR } from "@/lib/constants";
+
 import Tree from "./tree";
 import CustomTooltip from "./custom-tooltip";
 
@@ -375,11 +376,11 @@ export default function Forest({
           >
             {activeRegion 
               ? isMobile
-                ? `${activeRegion} countries`
+                ? `${REGION_ABBR[activeRegion]} countries`
                 : `Countries in ${activeRegion} (sorted by learning outcomes, low → high)`
               : isMobile
                 ? "Regions by learning outcomes"
-                : "Region (sorted by learning outcomes, low → high)"
+                : "Regions by learning outcomes (low → high)"
             }
           </text>
         </g>
@@ -447,7 +448,7 @@ export default function Forest({
           >
             {activeRegion 
               ? (tl.label.length > 12 ? tl.label.slice(0, 10) + "…" : tl.label)
-              : tl.label.replace("Latin America & Caribbean", "Latin America")
+              : REGION_ABBR[tl.label as Region] ?? tl.label
             }
           </text>
           )

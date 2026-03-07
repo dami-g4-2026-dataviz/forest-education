@@ -68,17 +68,16 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-end justify-center md:items-center p-0 md:p-4"
+      className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain p-0 touch-pan-y md:items-center md:p-4"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col md:flex-row rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl"
+        className="relative flex max-h-[100dvh] w-full flex-col overflow-y-auto rounded-t-3xl shadow-2xl md:max-h-[92vh] md:flex-row md:overflow-hidden md:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 720,
-          maxHeight: "92vh",
           background: "rgba(10, 15, 13, 0.98)",
           border: `1px solid ${color}40`,
         }}
@@ -97,7 +96,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
         </button>
 
         <div
-          className="w-full md:w-[42%] flex flex-col items-center justify-center px-4 py-4 md:p-8 bg-gradient-to-b from-transparent to-black/20"
+          className="w-full flex flex-col items-center justify-center px-4 py-4 bg-gradient-to-b from-transparent to-black/20 md:w-[42%] md:p-8"
           style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="relative">
@@ -172,7 +171,7 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col px-5 py-4 overflow-y-auto md:p-10">
+        <div className="flex-1 flex flex-col overflow-y-auto px-5 py-4 md:p-10">
           <header className="mb-4 md:mb-8">
             <div className="text-[9px] uppercase tracking-[0.2em] mb-1 md:text-[10px] md:mb-2" style={{ color, fontFamily: "Space Mono, monospace" }}>
               {country.region}

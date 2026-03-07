@@ -1,5 +1,15 @@
 import type { Region } from "./types";
 
+export const REGION_ABBR: Record<Region, string> = {
+  "Sub-Saharan Africa": "SSA",
+  "South Asia": "SA",
+  "East Asia & Pacific": "EAP",
+  "Europe & Central Asia": "ECA",
+  "Latin America & Caribbean": "LAC",
+  "Middle East & North Africa": "MENA",
+  "North America": "NA",
+};
+
 export const REGION_COLORS: Record<Region, string> = {
   "Sub-Saharan Africa": "#EF4444",
   "South Asia": "#F97316",

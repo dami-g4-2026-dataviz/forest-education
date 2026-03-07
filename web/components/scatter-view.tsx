@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useCallback, useRef } from "react";
 import type { CountryData, Region } from "@/lib/types";
-import { REGION_COLORS } from "@/lib/constants";
+import { REGION_COLORS, REGION_ABBR } from "@/lib/constants";
 import {
   ScatterChart,
   Scatter,
@@ -338,7 +338,7 @@ export default function ScatterView({
                     fontFamily: "Space Mono, monospace",
                   }}
                 >
-                  {region.length > 16 ? region.slice(0, 14) + "…" : region}
+                  {REGION_ABBR[region]}
                 </span>
               </div>
             );

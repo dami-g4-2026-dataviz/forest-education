@@ -192,8 +192,11 @@ export function useGuidedTour({
         borderRadius: highlightRadius,
       });
 
-      const desiredCardWidth = currentTourStep.id === "forest-read" ? 420 : 340;
-      const desiredCardHeight = currentTourStep.id === "forest-read" ? 240 : 210;
+      const isMobile = rootRect.width < 768;
+      const desiredCardWidth =
+        currentTourStep.id === "forest-read" ? (isMobile ? 320 : 420) : 340;
+      const desiredCardHeight =
+        currentTourStep.id === "forest-read" ? (isMobile ? 180 : 240) : 210;
       const cardWidth = Math.min(desiredCardWidth, rootRect.width - 24);
       const gap = 14;
       const spaceRight = rootRect.width - (left + width);
@@ -204,7 +207,13 @@ export function useGuidedTour({
       let cardLeft = left;
       let cardTop = top + height + gap;
 
-      if (currentTourStep.id === "forest-read") {
+      if (currentTourStep.id === "forest-read" && isMobile) {
+        cardLeft = Math.max(8, (rootRect.width - cardWidth) / 2);
+        cardTop = Math.max(8, top + height + 12);
+        if (cardTop + desiredCardHeight > rootRect.height - 12) {
+          cardTop = Math.max(8, top - desiredCardHeight - 12);
+        }
+      } else if (currentTourStep.id === "forest-read") {
         const leftSide = left - cardWidth - 24;
         const rightSide = left + width + 24;
         cardLeft =

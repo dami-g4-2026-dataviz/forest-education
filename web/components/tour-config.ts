@@ -121,9 +121,9 @@ export const FOREST_ONLY_STEPS: GuidedTourStep[] = [
   },
   {
     id: "forest-read",
-    title: "Read the bright center against the y-axis",
+    title: "Trunk height = years in school",
     description:
-      "Follow the dashed line from the bright center inside the canopy to the y-axis. That glowing point sits at the same level as the top of the trunk, so it shows how many years children spend in school.",
+      "The bright center of the canopy sits at the same level as the top of the trunk. Read it against the y-axis to see how many years children spend enrolled. Click any tree for full details.",
     targetStyle: {
       left: "38%",
       top: "26%",

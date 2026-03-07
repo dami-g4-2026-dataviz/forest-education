@@ -5,7 +5,7 @@ import { ChevronDown, ScatterChart, Globe2, Trees, Filter, X, Calendar, CircleHe
 import { motion, AnimatePresence } from "framer-motion";
 import type { CountryData, Region, TimelineYear } from "@/lib/types";
 import { TIMELINE_YEARS } from "@/lib/types";
-import { REGION_COLORS } from "@/lib/constants";
+import { REGION_COLORS, REGION_ABBR } from "@/lib/constants";
 import { generateTimelineData, getDataForYear } from "@/lib/timeline";
 import Forest from "./forest";
 import CountryDetail from "./country-detail";
@@ -192,7 +192,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
 
             {/* Top Navigation Bar */}
             <div
-              className="absolute top-0 left-0 right-0 z-40 flex flex-wrap items-start gap-2 px-3 py-3 pointer-events-auto sm:px-4 md:items-center md:gap-4 md:px-6"
+              className="absolute top-0 left-0 right-0 z-40 flex flex-wrap items-center gap-2 px-3 py-3 pointer-events-auto sm:px-4 md:gap-4 md:px-6"
               style={{
                 background:
                   viewMode === "map"
@@ -224,16 +224,16 @@ export default function HomeClient({ countries }: HomeClientProps) {
               {/* View Mode Switcher */}
               <div
                 data-tour="view-switcher"
-                className="order-2 flex items-center gap-1 rounded-xl p-1 md:ml-4"
+                className="order-2 flex items-center h-9 rounded-xl md:ml-4"
                 style={{
                   background: viewMode === "map" ? "transparent" : "rgba(255,255,255,0.05)",
-                  border: viewMode === "map" ? "none" : "1px solid rgba(255,255,255,0.04)",
+                  border: viewMode === "map" ? "none" : "1px solid rgba(255,255,255,0.1)",
                   boxShadow: viewMode === "map" ? "none" : undefined,
                 }}
               >
                 <button
                   onClick={() => setViewMode("forest")}
-                  className="flex items-center gap-2 rounded-lg px-2 py-2 text-[11px] transition-all sm:px-3 sm:text-xs"
+                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-0 h-9 min-w-[2.25rem] text-[11px] transition-all sm:text-xs"
                   style={{
                     background:
                       viewMode === "forest"
@@ -251,7 +251,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 </button>
                 <button
                   onClick={() => setViewMode("scatter")}
-                  className="flex items-center gap-2 rounded-lg px-2 py-2 text-[11px] transition-all sm:px-3 sm:text-xs"
+                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-0 h-9 min-w-[2.25rem] text-[11px] transition-all sm:text-xs"
                   style={{
                     background:
                       viewMode === "scatter"
@@ -269,7 +269,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 </button>
                 <button
                   onClick={() => setViewMode("map")}
-                  className="flex items-center gap-2 rounded-lg px-2 py-2 text-[11px] transition-all sm:px-3 sm:text-xs"
+                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-0 h-9 min-w-[2.25rem] text-[11px] transition-all sm:text-xs"
                   style={{
                     background: viewMode === "map" ? "rgba(74, 222, 128, 0.18)" : "transparent",
                     color: viewMode === "map" ? "var(--tree-healthy)" : "rgba(255,255,255,0.5)",
@@ -287,7 +287,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                 <div data-tour="region-filter" className="relative order-3">
                   <button
                     onClick={() => setShowRegionFilter(!showRegionFilter)}
-                    className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-[11px] transition-all sm:gap-2 sm:px-3 sm:text-xs"
+                    className="flex items-center justify-center gap-2 rounded-xl h-9 px-3 text-[11px] transition-all sm:text-xs"
                     style={{
                       background: activeRegion ? `${REGION_COLORS[activeRegion]}20` : "rgba(255,255,255,0.05)",
                       border: activeRegion ? `1px solid ${REGION_COLORS[activeRegion]}50` : "1px solid rgba(255,255,255,0.1)",
@@ -296,10 +296,10 @@ export default function HomeClient({ countries }: HomeClientProps) {
                     }}
                     title={activeRegion || "All Regions"}
                   >
-                    <Filter size={14} />
+                    <Filter size={16} />
                     {activeRegion ? (
                       <>
-                        <span className="hidden sm:inline">{activeRegion.length > 15 ? activeRegion.slice(0, 13) + "…" : activeRegion}</span>
+                        <span className="hidden sm:inline">{REGION_ABBR[activeRegion]}</span>
                         <X
                           size={12}
                           className="hover:opacity-70"
@@ -312,7 +312,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                     ) : (
                       <>
                         <span className="hidden sm:inline">All Regions</span>
-                        <ChevronDown size={12} />
+                        <ChevronDown size={14} />
                       </>
                     )}
                   </button>
@@ -377,7 +377,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
               <div data-tour="year-filter" className="relative order-3">
                 <button
                   onClick={() => setShowYearFilter(!showYearFilter)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-[11px] transition-all sm:gap-2 sm:px-3 sm:text-xs"
+                  className="flex items-center justify-center gap-2 rounded-xl h-9 px-3 text-[11px] transition-all sm:text-xs"
                   style={{
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -386,9 +386,9 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   }}
                   title={`Year: ${selectedYear}`}
                 >
-                  <Calendar size={14} />
+                  <Calendar size={16} />
                   <span>{selectedYear}</span>
-                  <ChevronDown size={12} className="hidden sm:inline" />
+                  <ChevronDown size={14} className="hidden sm:inline" />
                 </button>
 
                 <AnimatePresence>
@@ -432,7 +432,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
               <div data-tour="guide-button" className="relative order-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); openTourForCurrentView(); }}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-[11px] transition-all sm:gap-2 sm:px-3 sm:text-xs"
+                  className="flex items-center justify-center gap-2 rounded-xl h-9 px-3 text-[11px] transition-all sm:text-xs"
                   style={{
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -441,7 +441,7 @@ export default function HomeClient({ countries }: HomeClientProps) {
                   }}
                   title="Replay guided tour"
                 >
-                  <CircleHelp size={14} />
+                  <CircleHelp size={16} />
                   <span className="hidden sm:inline">Guide</span>
                 </button>
 

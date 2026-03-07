@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, ZoomIn, ZoomOut, Locate } from "lucide-react";
 import type { Region, CountryData } from "@/lib/types";
-import { REGION_COLORS } from "@/lib/constants";
+import { REGION_COLORS, REGION_ABBR } from "@/lib/constants";
 
 interface WorldMapProps {
   countries: CountryData[];
@@ -716,7 +716,7 @@ export default function WorldMap({
                     fontFamily: "Space Mono, monospace",
                   }}
                 >
-                  {region.length > 20 ? region.slice(0, 18) + "…" : region}
+                  {REGION_ABBR[region]}
                 </span>
                 <span
                   className="text-[10px] ml-auto shrink-0"

@@ -80,6 +80,12 @@ interface ForestGuideLineProps {
 export function ForestGuideLine({ guideLine }: ForestGuideLineProps) {
   if (!guideLine) return null;
 
+  const lineLen = Math.abs(guideLine.x2 - guideLine.x1);
+  const midX = (guideLine.x1 + guideLine.x2) / 2;
+  const isNarrow = typeof window !== "undefined" && window.innerWidth < 768;
+  const labelText = isNarrow ? "trunk → y-axis" : "read bright center → y-axis";
+  const labelW = isNarrow ? 106 : 164;
+
   return (
     <svg
       className="pointer-events-none absolute inset-0 z-[71] h-full w-full"
@@ -102,7 +108,7 @@ export function ForestGuideLine({ guideLine }: ForestGuideLineProps) {
         x2={guideLine.x2}
         y2={guideLine.y2}
         stroke="rgba(74, 222, 128, 0.25)"
-        strokeWidth={6}
+        strokeWidth={isNarrow ? 4 : 6}
         filter="url(#guide-glow)"
       />
       <line
@@ -111,33 +117,37 @@ export function ForestGuideLine({ guideLine }: ForestGuideLineProps) {
         x2={guideLine.x2}
         y2={guideLine.y2}
         stroke="rgba(255,255,255,0.9)"
-        strokeWidth={2}
-        strokeDasharray="8 6"
+        strokeWidth={isNarrow ? 1.5 : 2}
+        strokeDasharray={isNarrow ? "6 5" : "8 6"}
       />
-      <circle cx={guideLine.x1} cy={guideLine.y1} r={5} fill="white" filter="url(#guide-glow)" />
-      <circle cx={guideLine.x1} cy={guideLine.y1} r={3} fill="white" />
-      <circle cx={guideLine.x2} cy={guideLine.y2} r={6} fill="var(--tree-healthy)" opacity={0.35} filter="url(#guide-glow)" />
-      <circle cx={guideLine.x2} cy={guideLine.y2} r={4} fill="var(--tree-healthy)" />
-      <rect
-        x={(guideLine.x1 + guideLine.x2) / 2 - 82}
-        y={guideLine.y1 - 26}
-        width={164}
-        height={20}
-        rx={10}
-        fill="rgba(8, 16, 12, 0.85)"
-        stroke="rgba(74, 222, 128, 0.25)"
-        strokeWidth={1}
-      />
-      <text
-        x={(guideLine.x1 + guideLine.x2) / 2}
-        y={guideLine.y1 - 12}
-        textAnchor="middle"
-        fill="rgba(255,255,255,0.75)"
-        fontSize={10}
-        fontFamily="Space Mono, monospace"
-      >
-        read bright center → y-axis
-      </text>
+      <circle cx={guideLine.x1} cy={guideLine.y1} r={isNarrow ? 4 : 5} fill="white" filter="url(#guide-glow)" />
+      <circle cx={guideLine.x1} cy={guideLine.y1} r={isNarrow ? 2.5 : 3} fill="white" />
+      <circle cx={guideLine.x2} cy={guideLine.y2} r={isNarrow ? 5 : 6} fill="var(--tree-healthy)" opacity={0.35} filter="url(#guide-glow)" />
+      <circle cx={guideLine.x2} cy={guideLine.y2} r={isNarrow ? 3 : 4} fill="var(--tree-healthy)" />
+      {lineLen > 40 && (
+        <>
+          <rect
+            x={midX - labelW / 2}
+            y={guideLine.y1 - (isNarrow ? 22 : 26)}
+            width={labelW}
+            height={isNarrow ? 18 : 20}
+            rx={isNarrow ? 9 : 10}
+            fill="rgba(8, 16, 12, 0.85)"
+            stroke="rgba(74, 222, 128, 0.25)"
+            strokeWidth={1}
+          />
+          <text
+            x={midX}
+            y={guideLine.y1 - (isNarrow ? 9 : 12)}
+            textAnchor="middle"
+            fill="rgba(255,255,255,0.75)"
+            fontSize={isNarrow ? 9 : 10}
+            fontFamily="Space Mono, monospace"
+          >
+            {labelText}
+          </text>
+        </>
+      )}
     </svg>
   );
 }
@@ -155,7 +165,7 @@ export function WelcomeModal({ open, onStartIntroGuide }: WelcomeModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 z-[80]"
+          className="absolute inset-0 z-[80] overflow-y-auto overscroll-contain p-3 touch-pan-y sm:flex sm:items-center sm:justify-center sm:p-6"
         >
           <div className="absolute inset-0 bg-black/65 backdrop-blur-[3px]" />
           <motion.div
@@ -163,13 +173,14 @@ export function WelcomeModal({ open, onStartIntroGuide }: WelcomeModalProps) {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 12, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.22 }}
-            className="absolute left-1/2 top-1/2 w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border p-6 shadow-2xl sm:p-7"
+            className="relative mx-auto my-4 max-h-[calc(100dvh-24px)] w-full max-w-[560px] overflow-y-auto rounded-[28px] border p-5 shadow-2xl sm:my-0 sm:max-h-[min(720px,calc(100dvh-48px))] sm:p-7"
             style={{
               background:
                 "linear-gradient(180deg, rgba(11,22,17,0.98) 0%, rgba(8,16,12,0.98) 100%)",
               borderColor: "rgba(74, 222, 128, 0.18)",
               boxShadow:
                 "0 24px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <div className="mb-5 flex items-center gap-3">
@@ -218,7 +229,7 @@ export function WelcomeModal({ open, onStartIntroGuide }: WelcomeModalProps) {
               </p>
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3">
+            <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div
                 className="max-w-[260px] text-xs leading-5"
                 style={{ color: "rgba(255,255,255,0.42)", fontFamily: "Space Mono, monospace" }}
@@ -227,7 +238,7 @@ export function WelcomeModal({ open, onStartIntroGuide }: WelcomeModalProps) {
               </div>
               <button
                 onClick={onStartIntroGuide}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110"
+                className="w-full rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110 sm:w-auto"
                 style={{
                   background: "var(--tree-healthy)",
                   color: "var(--forest-deep)",
@@ -265,7 +276,7 @@ export function PromptedTourModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 z-[79]"
+          className="absolute inset-0 z-[79] overflow-y-auto overscroll-contain p-3 touch-pan-y sm:flex sm:items-center sm:justify-center sm:p-6"
         >
           <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
           <motion.div
@@ -273,11 +284,12 @@ export function PromptedTourModal({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 8, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-1/2 top-1/2 w-[min(460px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 rounded-[24px] border p-5 shadow-2xl sm:p-6"
+            className="relative mx-auto my-4 max-h-[calc(100dvh-24px)] w-full max-w-[460px] overflow-y-auto rounded-[24px] border p-5 shadow-2xl sm:my-0 sm:max-h-[min(640px,calc(100dvh-48px))] sm:p-6"
             style={{
               background: "linear-gradient(180deg, rgba(11,22,17,0.98) 0%, rgba(8,16,12,0.98) 100%)",
               borderColor: "rgba(74, 222, 128, 0.16)",
               boxShadow: "0 20px 80px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.04)",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <div className="mb-4 flex items-center gap-3">
@@ -314,10 +326,10 @@ export function PromptedTourModal({
               replay it later from the <span style={{ color: "var(--tree-healthy)" }}>Guide</span> button.
             </p>
 
-            <div className="mt-5 flex items-center justify-between gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button
                 onClick={onSkip}
-                className="rounded-2xl border px-4 py-3 text-sm transition hover:bg-white/5"
+                className="w-full rounded-2xl border px-4 py-3 text-sm transition hover:bg-white/5 sm:w-auto"
                 style={{
                   borderColor: "rgba(255,255,255,0.1)",
                   color: "rgba(255,255,255,0.72)",
@@ -326,10 +338,10 @@ export function PromptedTourModal({
               >
                 No thanks
               </button>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <button
                   onClick={() => onStartTour(view, "page-only")}
-                  className="rounded-2xl border px-4 py-3 text-sm transition hover:bg-white/5"
+                  className="w-full rounded-2xl border px-4 py-3 text-sm transition hover:bg-white/5 sm:w-auto"
                   style={{
                     borderColor: "rgba(255,255,255,0.1)",
                     color: "rgba(255,255,255,0.82)",
@@ -340,7 +352,7 @@ export function PromptedTourModal({
                 </button>
                 <button
                   onClick={() => onStartTour(view, "full")}
-                  className="rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110"
+                  className="w-full rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110 sm:w-auto"
                   style={{
                     background: "var(--tree-healthy)",
                     color: "var(--forest-deep)",
