@@ -23,7 +23,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: "#EF4444",
     headline: "5 years in school. 2 years of learning.",
     subtext:
-      "92% of 10-year-olds in Niger cannot read a simple sentence. The trunk is tall, but the canopy is bare.",
+      "92% of 10-year-olds in Niger cannot read a simple sentence.",
   },
   {
     code: "IND",
@@ -31,7 +31,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: "#F97316",
     headline: "High enrollment hides a learning crisis.",
     subtext:
-      "Since 1970, enrollment has doubled. But in South Asia, half of school time translates to zero learning.",
+      "Since 1970, enrollment has doubled. But in South Asia, children spend roughly half their school years without reaching basic learning benchmarks.",
   },
   {
     code: "VNM",
@@ -47,7 +47,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: "#EAB308",
     headline: "A childhood apart.",
     subtext:
-      "The gap between the best and worst education systems is 10 years of real learning — a full childhood lost.",
+      "The gap between the best and worst education systems is 10 years of real learning. That gap has barely narrowed in a decade.",
   },
   {
     code: null,
@@ -55,7 +55,7 @@ export const NARRATIVE_CHAPTERS: {
     regionColor: null,
     headline: "The 2030 deadline is close. The gap is not.",
     subtext:
-      "SDG 4 targets quality education for every child by 2030. At current rates, children in Sub-Saharan Africa will wait decades. The forest shows where we stand — and how far we have to grow.",
+      "SDG 4 targets quality education for every child by 2030. At current rates, children in Sub-Saharan Africa will wait decades.",
   },
 ];
 
@@ -96,7 +96,7 @@ export const chapters = [
     id: 4,
     title: "The Gender Dimension",
     subtitle: "Who is left behind?",
-    body: "In Afghanistan, Chad, and Yemen, girls are far less likely to be in school at all. The forest has empty spaces where girls' trees should stand.",
+    body: "In Afghanistan, Chad, and Yemen, girls are significantly less likely to be in school. The gap is not biological — it's structural.",
     highlight: "gender",
     metric: "30 countries still have significant gender gaps in enrollment.",
   },
@@ -104,7 +104,7 @@ export const chapters = [
     id: 5,
     title: "Are We On Track?",
     subtitle: "SDG 4 by 2030",
-    body: "At current rates, universal quality education will not be achieved until 2099 — 70 years late. The forest needs tending. The question is: who will do it?",
+    body: "At current rates, universal quality education will not be achieved until 2099 — 70 years late. The forest shows where we are. Progress exists — but not at the pace the deadline requires.",
     highlight: null,
     metric: "We are 70 years behind schedule on SDG 4.",
   },
