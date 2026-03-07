@@ -23,9 +23,9 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Silent Forest — SDG 4 Quality Education",
+  title: "The Forest — Education Data Visualization",
   description:
-    "A data story visualizing global education quality. Every tree is a country — its trunk is enrollment, its canopy is learning.",
+    "A data story visualizing global education quality. Every tree is a country — its trunk is years in school, its canopy is years learned.",
 };
 
 export default function RootLayout({
