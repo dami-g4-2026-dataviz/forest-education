@@ -276,7 +276,7 @@ export default function Tree({
         )}
       </g>
 
-      {(isActive || showLabel) && (
+      {showLabel && (
         <text
           x={0}
           y={14}
