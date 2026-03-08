@@ -188,14 +188,40 @@ export default function Forest({
   }, [svgWidth]);
 
   const treeLabels = useMemo(() => {
-    return treePositions.map(({ country, x }) => ({
-      label: activeRegion ? country.name : country.region,
-      code: country.code,
-      region: country.region,
-      x,
-      color: REGION_COLORS[country.region],
-    }));
-  }, [treePositions, activeRegion]);
+    const n = treePositions.length;
+    const marginL = isMobile ? 34 : 80;
+    const marginR = isMobile ? 24 : 80;
+    const usableWidth = dims.width - marginL - marginR;
+    const spacing = usableWidth / Math.max(n, 1);
+    const charWidth = isMobile ? 5 : (activeRegion ? 6 : 7.5);
+    const maxChars = Math.floor(spacing / charWidth);
+    const useAbbr = !activeRegion && maxChars < 18;
+
+    return treePositions.map(({ country, x }) => {
+      let displayLabel: string;
+      if (activeRegion) {
+        if (maxChars < 5) {
+          displayLabel = country.code;
+        } else if (country.name.length > maxChars) {
+          displayLabel = country.name.slice(0, maxChars - 1) + "…";
+        } else {
+          displayLabel = country.name;
+        }
+      } else {
+        displayLabel = useAbbr
+          ? (REGION_ABBR[country.region] ?? country.region)
+          : country.region;
+      }
+
+      return {
+        label: displayLabel,
+        code: country.code,
+        region: country.region,
+        x,
+        color: REGION_COLORS[country.region],
+      };
+    });
+  }, [treePositions, activeRegion, isMobile, dims.width]);
 
   const guideTreeIndex = useMemo(() => {
     if (treePositions.length === 0) return -1;
@@ -447,14 +473,7 @@ export default function Forest({
             fontWeight={500}
             style={{ transition: "opacity 0.35s ease" }}
           >
-            {activeRegion
-              ? isMobile
-                ? tl.code ?? tl.label.slice(0, 3).toUpperCase()
-                : tl.label
-              : isMobile
-                ? REGION_ABBR[tl.label as Region] ?? tl.label
-                : tl.label
-            }
+            {tl.label}
           </text>
           )
         ))}
