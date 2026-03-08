@@ -716,7 +716,8 @@ export default function WorldMap({
                     fontFamily: "Space Mono, monospace",
                   }}
                 >
-                  {REGION_ABBR[region]}
+                  <span className="md:hidden">{REGION_ABBR[region]}</span>
+                  <span className="hidden md:inline">{region}</span>
                 </span>
                 <span
                   className="text-[10px] ml-auto shrink-0"

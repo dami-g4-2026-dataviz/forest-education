@@ -299,7 +299,8 @@ export default function HomeClient({ countries }: HomeClientProps) {
                     <Filter size={16} />
                     {activeRegion ? (
                       <>
-                        <span className="hidden sm:inline">{REGION_ABBR[activeRegion]}</span>
+                        <span className="hidden sm:inline md:hidden">{REGION_ABBR[activeRegion]}</span>
+                        <span className="hidden md:inline">{activeRegion}</span>
                         <X
                           size={12}
                           className="hover:opacity-70"

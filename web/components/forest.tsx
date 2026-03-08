@@ -190,6 +190,7 @@ export default function Forest({
   const treeLabels = useMemo(() => {
     return treePositions.map(({ country, x }) => ({
       label: activeRegion ? country.name : country.region,
+      code: country.code,
       region: country.region,
       x,
       color: REGION_COLORS[country.region],
@@ -446,9 +447,13 @@ export default function Forest({
             fontWeight={500}
             style={{ transition: "opacity 0.35s ease" }}
           >
-            {activeRegion 
-              ? (tl.label.length > 12 ? tl.label.slice(0, 10) + "…" : tl.label)
-              : REGION_ABBR[tl.label as Region] ?? tl.label
+            {activeRegion
+              ? isMobile
+                ? tl.code ?? tl.label.slice(0, 3).toUpperCase()
+                : tl.label
+              : isMobile
+                ? REGION_ABBR[tl.label as Region] ?? tl.label
+                : tl.label
             }
           </text>
           )

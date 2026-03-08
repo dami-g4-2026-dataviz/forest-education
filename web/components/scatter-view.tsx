@@ -338,7 +338,7 @@ export default function ScatterView({
                     fontFamily: "Space Mono, monospace",
                   }}
                 >
-                  {REGION_ABBR[region]}
+                  {isMobile ? REGION_ABBR[region] : region}
                 </span>
               </div>
             );
