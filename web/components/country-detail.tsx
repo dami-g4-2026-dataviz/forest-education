@@ -111,7 +111,6 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
                 y={175}
                 scale={1.5}
                 maxTrunkH={110}
-                showLabel={true}
               />
             </svg>
             <svg
@@ -125,7 +124,6 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
                 y={260}
                 scale={2.2}
                 maxTrunkH={160}
-                showLabel={true}
               />
             </svg>
             <div
