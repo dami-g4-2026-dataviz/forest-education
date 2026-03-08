@@ -43,7 +43,7 @@ function StatRow({ label, value, unit, color, sourceKey }: { label: string; valu
           fontFamily: "Space Mono, monospace",
         }}
       >
-        {value}{unit}
+        {typeof value === "number" ? parseFloat(value.toFixed(2)) : value}{unit}
       </span>
     </div>
   );
@@ -187,12 +187,12 @@ export default function CountryDetail({ country, onClose }: CountryDetailProps) 
           <div className="mb-6 md:mb-10">
             <div className="flex items-baseline gap-2 mb-1">
               <span className="text-3xl font-black md:text-5xl" style={{ color: "var(--text-primary)", fontFamily: "Space Mono, monospace" }}>
-                {country.lays}
+                {typeof country.lays === "number" ? country.lays.toFixed(2) : country.lays}
               </span>
               <span className="text-base opacity-40 font-light md:text-xl">years</span>
             </div>
             <p className="text-sm leading-snug font-light text-white/70 md:text-lg">
-              of <span className="text-white font-medium">{country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
+              of <span className="text-white font-medium">{typeof country.yearsInSchool === "number" ? country.yearsInSchool.toFixed(1) : country.yearsInSchool} years</span> in school translate to actual learning (measured by test results).
             </p>
             {lostYears > 0.5 && (
               <p className="mt-3 text-xs text-white/60 italic md:mt-4 md:text-sm">
