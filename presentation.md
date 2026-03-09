@@ -1,6 +1,6 @@
 ● Silent Forest — Presentation Plan (Revised)
 
-  Duration: ~10 min | Audience: Fontys Admission Office
+  Duration: ~10 min | Audience: Fontys Students
 
   ---
   Hook (1 min)
