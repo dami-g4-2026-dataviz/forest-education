@@ -263,15 +263,16 @@ export default function ScatterView({
                   { x: 4, y: 4 },
                   { x: 14, y: 14 },
                 ]}
-                stroke="rgba(255,255,255,0.12)"
-                strokeDasharray="4 4"
+                stroke="rgba(255,255,255,0.45)"
+                strokeWidth={1.5}
+                strokeDasharray="6 4"
                 label={
                   isMobile
                     ? undefined
                     : {
                         value: "100% efficiency",
                         position: "insideTopLeft",
-                        fill: "rgba(255,255,255,0.2)",
+                        fill: "rgba(255,255,255,0.5)",
                         fontSize: 9,
                         fontFamily: "Space Mono, monospace",
                       }
