@@ -20,6 +20,16 @@ export const REGION_COLORS: Record<Region, string> = {
   "North America": "#34D399",
 };
 
+export const BRIGHT_REGION_COLORS: Record<Region, string> = {
+  "Sub-Saharan Africa": "#FF6B6B",
+  "South Asia": "#FFB347",
+  "East Asia & Pacific": "#FFE066",
+  "Europe & Central Asia": "#69DB7C",
+  "Latin America & Caribbean": "#4ECDC4",
+  "Middle East & North Africa": "#C5A3FF",
+  "North America": "#51CF66",
+};
+
 export const NARRATIVE_CHAPTERS: {
   code: string | null;
   region: string | null;

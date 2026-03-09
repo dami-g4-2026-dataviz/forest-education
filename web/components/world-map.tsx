@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, ZoomIn, ZoomOut, Locate } from "lucide-react";
 import type { Region, CountryData } from "@/lib/types";
-import { REGION_COLORS, REGION_ABBR } from "@/lib/constants";
+import { BRIGHT_REGION_COLORS, REGION_ABBR } from "@/lib/constants";
 
 interface WorldMapProps {
   countries: CountryData[];
@@ -99,16 +99,26 @@ function clampViewBoxToBounds(viewBox: { x: number; y: number; w: number; h: num
 const GEOJSON_URL =
   "https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_60M_2024_4326.geojson";
 
-// Brighter versions of region colors for the map
-const BRIGHT_REGION_COLORS: Record<Region, string> = {
-  "Sub-Saharan Africa": "#FF6B6B",
-  "South Asia": "#FFB347",
-  "East Asia & Pacific": "#FFE066",
-  "Europe & Central Asia": "#69DB7C",
-  "Latin America & Caribbean": "#4ECDC4",
-  "Middle East & North Africa": "#C5A3FF",
-  "North America": "#51CF66",
-};
+// LAYS-based color gradient: red (low) → amber (mid) → green (high)
+const LAYS_MIN = 2;
+const LAYS_MAX = 13;
+
+function laysToColor(lays: number): string {
+  const t = Math.max(0, Math.min(1, (lays - LAYS_MIN) / (LAYS_MAX - LAYS_MIN)));
+  let r: number, g: number, b: number;
+  if (t < 0.5) {
+    const s = t * 2;
+    r = 255;
+    g = Math.round(61 + s * (179 - 61));
+    b = Math.round(46 + s * (71 - 46));
+  } else {
+    const s = (t - 0.5) * 2;
+    r = Math.round(255 - s * (255 - 74));
+    g = Math.round(179 + s * (222 - 179));
+    b = Math.round(71 + s * (128 - 71));
+  }
+  return `rgb(${r},${g},${b})`;
+}
 
 export default function WorldMap({
   countries,
@@ -123,6 +133,8 @@ export default function WorldMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [searchResults, setSearchResults] = useState<CountryData[]>([]);
+  const [colorMode, setColorMode] = useState<"lays" | "region">("lays");
+  const [activeRegion, setActiveRegion] = useState<Region | null>(null);
   
   // Pan and zoom state
   const [viewBox, setViewBox] = useState({ x: -50, y: 40, w: MAP_WIDTH + 100, h: MAP_HEIGHT - 60 });
@@ -293,6 +305,10 @@ export default function WorldMap({
     [countryLookup, onCountryClick]
   );
 
+  const handleRegionClick = useCallback((region: Region) => {
+    setActiveRegion((prev) => (prev === region ? null : region));
+  }, []);
+
   const countryPaths = useMemo(() => {
     if (!geoData) return [];
 
@@ -307,8 +323,8 @@ export default function WorldMap({
         path,
         country,
         region: country?.region ?? null,
-        color: country ? BRIGHT_REGION_COLORS[country.region] : null,
-        originalColor: country ? REGION_COLORS[country.region] : null,
+        laysColor: country ? laysToColor(country.lays) : null,
+        regionColor: country ? BRIGHT_REGION_COLORS[country.region] : null,
       };
     });
   }, [geoData, countryLookup]);
@@ -426,11 +442,14 @@ export default function WorldMap({
 
         {/* Countries */}
         <g>
-          {countryPaths.map(({ iso3, name, path, country, region, color }) => {
+          {countryPaths.map(({ iso3, name, path, country, region, laysColor, regionColor }) => {
             const isHovered = hoveredCountry === iso3;
-            const isInHighlightedRegion = highlightedRegion && region === highlightedRegion;
-            const isAnyRegionHighlighted = highlightedRegion !== null && highlightedRegion !== undefined;
+            // Merge external highlightedRegion (from forest hover) with local activeRegion filter
+            const effectiveRegion = activeRegion ?? highlightedRegion ?? null;
+            const isInHighlightedRegion = effectiveRegion && region === effectiveRegion;
+            const isAnyRegionHighlighted = effectiveRegion !== null;
             const hasData = country !== undefined;
+            const color = colorMode === "region" ? regionColor : laysColor;
 
             let fillColor = "#1a2a25";
             let fillOpacity = 0.8;
@@ -439,11 +458,11 @@ export default function WorldMap({
 
             if (hasData && color) {
               fillColor = color;
-              fillOpacity = isHovered ? 1 : isInHighlightedRegion ? 0.9 : isAnyRegionHighlighted ? 0.35 : 0.75;
+              fillOpacity = isHovered ? 1 : isInHighlightedRegion ? 0.9 : isAnyRegionHighlighted ? 0.3 : 0.75;
               strokeColor = isHovered ? "#fff" : isInHighlightedRegion ? color : "rgba(255,255,255,0.2)";
               strokeWidth = isHovered ? 2 : isInHighlightedRegion ? 1 : 0.5;
             } else {
-              fillOpacity = isAnyRegionHighlighted ? 0.3 : 0.5;
+              fillOpacity = isAnyRegionHighlighted ? 0.2 : 0.5;
               strokeColor = "rgba(74, 222, 128, 0.1)";
             }
 
@@ -485,18 +504,18 @@ export default function WorldMap({
             className="absolute left-3 right-3 top-20 z-10 md:left-auto md:right-6 md:top-20"
             style={{
               background: "rgba(10, 22, 18, 0.95)",
-              border: `2px solid ${BRIGHT_REGION_COLORS[countryLookup.get(hoveredCountry)!.region]}`,
+              border: `2px solid ${colorMode === "region" ? BRIGHT_REGION_COLORS[countryLookup.get(hoveredCountry)!.region] : laysToColor(countryLookup.get(hoveredCountry)!.lays)}`,
               borderRadius: "16px",
               padding: "16px",
               width: "auto",
               maxWidth: "320px",
               backdropFilter: "blur(12px)",
-              boxShadow: `0 8px 32px rgba(0,0,0,0.4), 0 0 60px ${BRIGHT_REGION_COLORS[countryLookup.get(hoveredCountry)!.region]}30`,
+              boxShadow: `0 8px 32px rgba(0,0,0,0.4), 0 0 60px ${colorMode === "region" ? BRIGHT_REGION_COLORS[countryLookup.get(hoveredCountry)!.region] : laysToColor(countryLookup.get(hoveredCountry)!.lays)}30`,
             }}
           >
             {(() => {
               const country = countryLookup.get(hoveredCountry)!;
-              const color = BRIGHT_REGION_COLORS[country.region];
+              const color = colorMode === "region" ? BRIGHT_REGION_COLORS[country.region] : laysToColor(country.lays);
               return (
                 <>
                   <div className="flex items-center gap-3 mb-3">
@@ -508,7 +527,7 @@ export default function WorldMap({
                       {country.name}
                     </h3>
                   </div>
-                  <p className="text-sm mb-4" style={{ color, fontFamily: "Space Mono, monospace" }}>
+                  <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "Space Mono, monospace" }}>
                     {country.region}
                   </p>
                   <div className="grid grid-cols-2 gap-4">
@@ -606,11 +625,11 @@ export default function WorldMap({
                       >
                         <div
                           className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ background: BRIGHT_REGION_COLORS[country.region] }}
+                          style={{ background: laysToColor(country.lays) }}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-white truncate">{country.name}</div>
-                          <div className="text-[10px] truncate" style={{ color: BRIGHT_REGION_COLORS[country.region] }}>
+                          <div className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
                             {country.region}
                           </div>
                         </div>
@@ -674,60 +693,122 @@ export default function WorldMap({
         </button>
       </div>
 
-      {/* Region legend */}
+      {/* Map controls: color mode + region filter */}
       <div
-        className="absolute bottom-24 left-3 z-10 max-w-[calc(100vw-5rem)] md:bottom-20 md:left-6 md:max-w-none"
-        style={{
-          background: "transparent",
-          border: "none",
-          backdropFilter: "none",
-          textShadow: "0 2px 12px rgba(0,0,0,0.55)",
-        }}
+        className="absolute bottom-24 left-3 z-10 md:bottom-20 md:left-6"
+        style={{ textShadow: "0 2px 12px rgba(0,0,0,0.55)" }}
       >
-        <div
-          className="text-[10px] uppercase tracking-widest mb-3"
-          style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Space Mono, monospace" }}
-        >
-          Regions
-        </div>
-        <div className="flex flex-col gap-2">
-          {(Object.entries(BRIGHT_REGION_COLORS) as [Region, string][]).map(([region, color]) => {
-            const isHighlighted = highlightedRegion === region;
-            const countryCount = countries.filter((c) => c.region === region).length;
-            return (
-              <div
-                key={region}
-                className="flex items-center gap-2 cursor-pointer transition-all"
-                style={{ opacity: highlightedRegion && !isHighlighted ? 0.4 : 1 }}
-                onMouseEnter={() => onRegionHover?.(region)}
-                onMouseLeave={() => onRegionHover?.(null)}
+        {/* Color mode toggle */}
+        <div className="mb-3">
+          <div
+            className="text-[10px] uppercase tracking-widest mb-1.5"
+            style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}
+          >
+            Color by
+          </div>
+          <div
+            className="flex gap-1 p-0.5 rounded-lg"
+            style={{
+              background: "rgba(10,22,18,0.85)",
+              border: "1px solid rgba(74,222,128,0.15)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {(["lays", "region"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setColorMode(mode)}
+                className="px-3 py-1 rounded-md text-[10px] transition-all"
+                style={{
+                  background: colorMode === mode ? "rgba(74,222,128,0.18)" : "transparent",
+                  color: colorMode === mode ? "#4ADE80" : "rgba(255,255,255,0.4)",
+                  fontFamily: "Space Mono, monospace",
+                  fontWeight: colorMode === mode ? 700 : 400,
+                }}
               >
-                <div
-                  className="w-3 h-3 rounded-sm shrink-0"
-                  style={{ 
-                    background: color, 
-                    boxShadow: isHighlighted ? `0 0 8px ${color}` : "none",
-                  }}
-                />
-                <span
-                  className="text-xs truncate"
-                  style={{ 
-                    color: isHighlighted ? color : "rgba(255,255,255,0.7)", 
-                    fontFamily: "Space Mono, monospace",
+                {mode === "lays" ? "LAYS" : "Region"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* LAYS gradient bar (LAYS mode only) */}
+        {colorMode === "lays" && (
+          <div className="mb-3">
+            <div
+              className="w-40 h-2.5 rounded-full"
+              style={{ background: "linear-gradient(to right, #FF3D2E, #FFB347, #4ADE80)" }}
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Space Mono, monospace" }}>2 yrs</span>
+              <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Space Mono, monospace" }}>13 yrs</span>
+            </div>
+          </div>
+        )}
+
+        {/* Region filter */}
+        <div>
+          <div
+            className="text-[10px] uppercase tracking-widest mb-1.5 flex items-center gap-2"
+            style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Space Mono, monospace" }}
+          >
+            Regions
+            {activeRegion && (
+              <button
+                onClick={() => setActiveRegion(null)}
+                className="text-[9px] px-1.5 py-0.5 rounded"
+                style={{
+                  color: "rgba(255,255,255,0.5)",
+                  background: "rgba(255,255,255,0.08)",
+                  fontFamily: "Space Mono, monospace",
+                }}
+              >
+                clear
+              </button>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {(Object.keys(BRIGHT_REGION_COLORS) as Region[]).map((region) => {
+              const color = BRIGHT_REGION_COLORS[region];
+              const isActive = activeRegion === region;
+              const count = countries.filter((c) => c.region === region).length;
+              return (
+                <button
+                  key={region}
+                  onClick={() => handleRegionClick(region)}
+                  className="flex items-center gap-2 text-left transition-all"
+                  style={{
+                    opacity: activeRegion && !isActive ? 0.35 : 1,
                   }}
                 >
-                  <span className="md:hidden">{REGION_ABBR[region]}</span>
-                  <span className="hidden md:inline">{region}</span>
-                </span>
-                <span
-                  className="text-[10px] ml-auto shrink-0"
-                  style={{ color: "rgba(255,255,255,0.3)" }}
-                >
-                  {countryCount}
-                </span>
-              </div>
-            );
-          })}
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm shrink-0 transition-all"
+                    style={{
+                      background: colorMode === "region" ? color : "rgba(255,255,255,0.3)",
+                      boxShadow: isActive ? `0 0 6px ${color}` : "none",
+                      outline: isActive ? `1.5px solid ${color}` : "none",
+                    }}
+                  />
+                  <span
+                    className="text-[10px] truncate"
+                    style={{
+                      color: isActive ? (colorMode === "region" ? color : "rgba(255,255,255,0.9)") : "rgba(255,255,255,0.6)",
+                      fontFamily: "Space Mono, monospace",
+                    }}
+                  >
+                    <span className="md:hidden">{REGION_ABBR[region]}</span>
+                    <span className="hidden md:inline">{region}</span>
+                  </span>
+                  <span className="text-[9px] ml-auto shrink-0" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.2)", fontFamily: "Space Mono, monospace" }}>
+            Grey = no data
+          </div>
         </div>
       </div>
 
