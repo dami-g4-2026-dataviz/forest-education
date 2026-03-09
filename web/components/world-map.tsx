@@ -548,7 +548,7 @@ export default function WorldMap({
       </AnimatePresence>
 
       {/* Search UI */}
-      <div data-tour="map-search" className="absolute top-16 left-3 right-3 z-20 sm:left-auto sm:right-6 sm:top-20 sm:w-72">
+      <div data-tour="map-search" className="absolute z-50 w-72" style={{ top: '6rem', left: 'calc(50% - 9rem)' }}>
         <div className="relative">
           <button
             onClick={() => setShowSearch(!showSearch)}

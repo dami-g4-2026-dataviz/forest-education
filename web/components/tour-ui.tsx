@@ -230,12 +230,6 @@ export function WelcomeModal({ open, onStartIntroGuide }: WelcomeModalProps) {
             </div>
 
             <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div
-                className="max-w-[260px] text-xs leading-5"
-                style={{ color: "rgba(255,255,255,0.42)", fontFamily: "Space Mono, monospace" }}
-              >
-                Continue to the introductory guide for a quick walkthrough of the views, filters, and timeline.
-              </div>
               <button
                 onClick={onStartIntroGuide}
                 className="w-full rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110 sm:w-auto"

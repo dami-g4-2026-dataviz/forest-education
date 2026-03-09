@@ -93,7 +93,7 @@ export default function Tree({
   const trunkW = Math.max(3, 5 * scale);
 
   // Canopy base radius driven by LAYS — minimum ensures crisis trees are visible
-  const canopyR = Math.max(8 * scale, (country.lays / 16) * 60 * scale);
+  const canopyR = Math.max(6 * scale, Math.pow(country.lays / 14, 1.6) * 65 * scale);
 
   const seed = country.code.charCodeAt(0) * 31 + country.code.charCodeAt(1);
   const opacity = dimmed ? (dimOpacity ?? 0.15) : 1;
@@ -209,7 +209,7 @@ export default function Tree({
           r={canopyR * 1.35}
           fill={color}
           opacity={0.04 + learningRatio * 0.06}
-          style={{ filter: `blur(${canopyR * 0.4}px)` }}
+          style={{ filter: `blur(${Math.min(canopyR * 0.25, 12)}px)` }}
         />
 
         {Array.from({ length: numClusters }).map((_, i) => {
